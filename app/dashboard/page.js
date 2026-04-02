@@ -36,6 +36,9 @@ export default function DashboardPage() {
   const [quickAddEditing, setQuickAddEditing] = useState(false);
   const [newQuickAdd, setNewQuickAdd] = useState("");
   const [savingQuickAdd, setSavingQuickAdd] = useState(false);
+  const [phoneEditing, setPhoneEditing] = useState(false);
+  const [newPhone, setNewPhone] = useState("");
+  const [savingPhone, setSavingPhone] = useState(false);
 
   const fetchUserData = useCallback(async () => {
     if (!user) return;
@@ -147,6 +150,22 @@ export default function DashboardPage() {
     }
   };
 
+  const handlePhoneSave = async () => {
+    if (!newPhone) return; // allows removing? We can skip validation for simplistic approach
+    setSavingPhone(true);
+    try {
+      const ref = doc(db, "users", user.uid);
+      await updateDoc(ref, { mechanicPhone: newPhone });
+      await fetchUserData();
+      setPhoneEditing(false);
+      setNewPhone("");
+    } catch (err) {
+      console.error("Phone update error:", err);
+    } finally {
+      setSavingPhone(false);
+    }
+  };
+
   if (authLoading || dataLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -163,7 +182,7 @@ export default function DashboardPage() {
 
   if (!user || !userData) return null;
 
-  const { totalKm = 0, oilChangeLimit = 2000, lastResetKm = 0, lastOilChangeDate, quickAddKm = 0 } = userData;
+  const { totalKm = 0, oilChangeLimit = 2000, lastResetKm = 0, lastOilChangeDate, quickAddKm = 0, mechanicPhone = "" } = userData;
   const kmSinceReset = totalKm - lastResetKm;
   const remainingKm = oilChangeLimit - kmSinceReset;
   const oilUsedPct = Math.min(100, (kmSinceReset / oilChangeLimit) * 100);
@@ -288,7 +307,7 @@ export default function DashboardPage() {
             {/* Right column */}
             <div className="lg:col-span-2 space-y-6">
               {/* Add ride */}
-              <DailyRideInput onRideAdded={fetchUserData} quickAddKm={quickAddKm} />
+              <DailyRideInput onRideAdded={fetchUserData} quickAddKm={quickAddKm} mechanicPhone={mechanicPhone} />
 
               {/* Oil limit setting */}
               <motion.div
@@ -444,6 +463,58 @@ export default function DashboardPage() {
                       className="px-5 py-2 rounded-xl btn-glow text-white text-sm font-semibold flex items-center gap-2 disabled:opacity-60"
                     >
                       {savingQuickAdd ? <Loader2 size={14} className="animate-spin" /> : "Save"}
+                    </motion.button>
+                  </motion.div>
+                )}
+              </motion.div>
+
+              {/* Mechanic Phone setting */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.55 }}
+                className="glass rounded-2xl p-6 border border-white/8"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center">
+                      <Settings2 size={18} className="text-blue-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">Emergency / Mechanic Phone</h3>
+                      <p className="text-xs text-slate-500">
+                        Current: {mechanicPhone || "Not set. Required for quick SMS/WhatsApp"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setPhoneEditing(!phoneEditing); setNewPhone(mechanicPhone); }}
+                    className="text-xs text-purple-400 hover:text-purple-300 transition-colors font-medium"
+                  >
+                    {phoneEditing ? "Cancel" : "Edit"}
+                  </button>
+                </div>
+                {phoneEditing && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="flex gap-3"
+                  >
+                    <input
+                      type="text"
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      placeholder={`e.g. +919876543210`}
+                      className="glass-input flex-1"
+                    />
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={handlePhoneSave}
+                      disabled={savingPhone}
+                      className="px-5 py-2 rounded-xl btn-glow text-white text-sm font-semibold flex items-center gap-2 disabled:opacity-60"
+                    >
+                      {savingPhone ? <Loader2 size={14} className="animate-spin" /> : "Save"}
                     </motion.button>
                   </motion.div>
                 )}

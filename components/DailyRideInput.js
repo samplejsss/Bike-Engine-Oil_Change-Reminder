@@ -6,7 +6,7 @@ import { db, auth } from "@/lib/firebase";
 import { collection, addDoc, doc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
 
-export default function DailyRideInput({ onRideAdded, quickAddKm = 0 }) {
+export default function DailyRideInput({ onRideAdded, quickAddKm = 0, mechanicPhone = "" }) {
   const { user } = useAuth();
   const [km, setKm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,6 +45,23 @@ export default function DailyRideInput({ onRideAdded, quickAddKm = 0 }) {
       setKm("");
       setSuccess(true);
       if (onRideAdded) onRideAdded();
+      
+      if (mechanicPhone) {
+        const text = `Hey! I just logged a daily run of ${kmVal} km using BikeCare Tracker. Keep an eye out for my next oil change limit!`;
+        const cleanPhone = mechanicPhone.replace(/\D/g, "");
+        if (cleanPhone) {
+          // Attempt automatic WhatsApp redirect
+          try {
+             const a = document.createElement("a");
+             a.target = "_blank";
+             a.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+             a.click();
+          } catch(e) {
+             console.log("Popup blocked or error", e);
+          }
+        }
+      }
+
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError("Failed to add ride. Try again.");
