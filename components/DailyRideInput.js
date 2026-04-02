@@ -12,6 +12,7 @@ export default function DailyRideInput({ onRideAdded, quickAddKm = 0, mechanicPh
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [shareLinks, setShareLinks] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,31 +52,47 @@ export default function DailyRideInput({ onRideAdded, quickAddKm = 0, mechanicPh
         const newSinceReset = newTotal - currentStats.lastResetKm;
         const newRemaining = currentStats.oilChangeLimit - newSinceReset;
         
+        const appUrl = typeof window !== "undefined" ? `${window.location.origin}/history` : "";
         const details = [
            `🏍️ *BikeCare Tracker Update*`,
            `I just logged a ride of *${kmVal} km*.`,
            ``,
            `📊 *Current Stats:*`,
-           `- Total KM: ${newTotal.toFixed(1)} km`,
-           `- Oil Change Limit: ${currentStats.oilChangeLimit.toLocaleString()} km`,
-           `- Oil Change Due In: ${newRemaining > 0 ? newRemaining.toFixed(1) + " km" : "OVERDUE ⚠️"}`
+           `• Total KM Ridden: *${newTotal.toFixed(1)} km*`,
+           `• Oil Change Limit: *${currentStats.oilChangeLimit.toLocaleString()} km*`,
+           `• KM Since Last Change: *${(currentStats.totalKm - currentStats.lastResetKm + kmVal).toFixed(1)} km*`,
+           `• Oil Change Due In: *${newRemaining > 0 ? newRemaining.toFixed(1) + " km" : "OVERDUE ⚠️"}*`,
+           ``,
+           `📄 *Full Rides Report:*`,
+           appUrl ? `View & download your complete rides PDF report here:\n${appUrl}` : `Open the BikeCare Tracker app > History tab to download PDF report.`,
         ].join('\n');
 
         const cleanPhone = mechanicPhone.replace(/\D/g, "");
         if (cleanPhone) {
-          // Attempt automatic WhatsApp redirect
+          // Auto-fire WhatsApp first
           try {
-             const a = document.createElement("a");
-             a.target = "_blank";
-             a.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(details)}`;
-             a.click();
-          } catch(e) {
-             console.log("Popup blocked or error", e);
-          }
+            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(details)}`, "_blank");
+          } catch(e) { console.warn("WhatsApp open failed", e); }
+
+          // Auto-fire SMS after short delay (so browser doesn't block immediate double-popup)
+          setTimeout(() => {
+            try {
+              window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(details)}`;
+            } catch(e) { console.warn("SMS open failed", e); }
+          }, 800);
+
+          // Also set share links as manual fallback in case popups were blocked
+          setShareLinks({
+            wa: `https://wa.me/${cleanPhone}?text=${encodeURIComponent(details)}`,
+            sms: `sms:${cleanPhone}?body=${encodeURIComponent(details)}`
+          });
         }
       }
 
-      setTimeout(() => setSuccess(false), 3000);
+      setTimeout(() => {
+        setSuccess(false);
+        setShareLinks(null);
+      }, 10000);
     } catch (err) {
       setError("Failed to add ride. Try again.");
       console.error(err);
@@ -131,13 +148,31 @@ export default function DailyRideInput({ onRideAdded, quickAddKm = 0, mechanicPh
         )}
 
         {success && (
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-green-400 text-sm"
+            className="flex flex-col gap-3 mt-2 mb-4"
           >
-            ✓ Ride added successfully!
-          </motion.p>
+            <p className="text-green-400 text-sm font-medium">✓ Ride added successfully!</p>
+            {shareLinks && (
+              <div className="flex gap-2">
+                <a 
+                  href={shareLinks.wa} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex-1 py-2.5 rounded-xl bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/30 text-xs font-bold flex items-center justify-center hover:bg-[#25D366]/30 transition-all"
+                >
+                  Send WhatsApp
+                </a>
+                <a 
+                  href={shareLinks.sms}
+                  className="flex-1 py-2.5 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-bold flex items-center justify-center hover:bg-blue-500/30 transition-all"
+                >
+                  Send SMS
+                </a>
+              </div>
+            )}
+          </motion.div>
         )}
 
         <motion.button
