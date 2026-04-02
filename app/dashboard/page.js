@@ -30,6 +30,9 @@ export default function DashboardPage() {
   const [limitEditing, setLimitEditing] = useState(false);
   const [newLimit, setNewLimit] = useState("");
   const [savingLimit, setSavingLimit] = useState(false);
+  const [dateEditing, setDateEditing] = useState(false);
+  const [newDate, setNewDate] = useState("");
+  const [savingDate, setSavingDate] = useState(false);
 
   const fetchUserData = useCallback(async () => {
     if (!user) return;
@@ -107,6 +110,23 @@ export default function DashboardPage() {
     }
   };
 
+  const handleDateSave = async () => {
+    if (!newDate) return;
+    setSavingDate(true);
+    try {
+      const selectedDate = new Date(newDate);
+      const ref = doc(db, "users", user.uid);
+      await updateDoc(ref, { lastOilChangeDate: selectedDate });
+      await fetchUserData();
+      setDateEditing(false);
+      setNewDate("");
+    } catch (err) {
+      console.error("Date update error:", err);
+    } finally {
+      setSavingDate(false);
+    }
+  };
+
   if (authLoading || dataLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -130,7 +150,15 @@ export default function DashboardPage() {
   const isDue = remainingKm <= 0;
 
   const lastOilStr = lastOilChangeDate
-    ? new Date(lastOilChangeDate.seconds * 1000).toLocaleDateString("en-IN", {
+    ? new Date(
+        lastOilChangeDate.seconds !== undefined 
+          ? lastOilChangeDate.seconds * 1000 
+          : lastOilChangeDate instanceof Date 
+            ? lastOilChangeDate 
+            : typeof lastOilChangeDate.toMillis === "function" 
+              ? lastOilChangeDate.toMillis() 
+              : lastOilChangeDate
+      ).toLocaleDateString("en-IN", {
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -291,6 +319,57 @@ export default function DashboardPage() {
                       className="px-5 py-2 rounded-xl btn-glow text-white text-sm font-semibold flex items-center gap-2 disabled:opacity-60"
                     >
                       {savingLimit ? <Loader2 size={14} className="animate-spin" /> : "Save"}
+                    </motion.button>
+                  </motion.div>
+                )}
+              </motion.div>
+
+              {/* Last Oil Change Date setting */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.45 }}
+                className="glass rounded-2xl p-6 border border-white/8"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center">
+                      <CalendarDays size={18} className="text-cyan-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">Last Oil Change Date</h3>
+                      <p className="text-xs text-slate-500">
+                        Current: {lastOilStr}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setDateEditing(!dateEditing); setNewDate(""); }}
+                    className="text-xs text-purple-400 hover:text-purple-300 transition-colors font-medium"
+                  >
+                    {dateEditing ? "Cancel" : "Edit"}
+                  </button>
+                </div>
+                {dateEditing && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="flex gap-3"
+                  >
+                    <input
+                      type="date"
+                      value={newDate}
+                      onChange={(e) => setNewDate(e.target.value)}
+                      className="glass-input flex-1"
+                    />
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={handleDateSave}
+                      disabled={savingDate}
+                      className="px-5 py-2 rounded-xl btn-glow text-white text-sm font-semibold flex items-center gap-2 disabled:opacity-60"
+                    >
+                      {savingDate ? <Loader2 size={14} className="animate-spin" /> : "Save"}
                     </motion.button>
                   </motion.div>
                 )}

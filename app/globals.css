@@ -129,6 +129,10 @@ body {
 .glass-input::placeholder {
   color: var(--text-muted);
 }
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(0.8);
+  cursor: pointer;
+}
 
 /* Page fade */
 .page-enter {

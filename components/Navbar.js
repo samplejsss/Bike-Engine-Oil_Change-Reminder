@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
-import { Bike, LayoutDashboard, History, LogOut, LogIn, Menu, X } from "lucide-react";
+import { Bike, LayoutDashboard, History as HistoryIcon, LogOut, LogIn, Menu, X } from "lucide-react";
 import { useState } from "react";
 
 export default function Navbar() {
@@ -22,7 +22,7 @@ export default function Navbar() {
   const navLinks = user
     ? [
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/history", label: "History", icon: History },
+        { href: "/history", label: "History", icon: HistoryIcon },
       ]
     : [];
 

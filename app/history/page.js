@@ -6,7 +6,7 @@ import { collection, query, where, orderBy, getDocs, limit as fbLimit } from "fi
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
-import { MapPin, Calendar, Clock, Bike, Loader2, ArrowUpRight } from "lucide-react";
+import { MapPin, Calendar, Clock, Bike, Loader2, ArrowUpRight, History as HistoryIcon } from "lucide-react";
 
 export default function HistoryPage() {
   const { user, loading: authLoading } = useAuth();
@@ -50,7 +50,7 @@ export default function HistoryPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-2xl btn-glow flex items-center justify-center">
-            <History size={24} className="text-white" />
+            <HistoryIcon size={24} className="text-white" />
           </div>
           <Loader2 size={24} className="text-purple-400 animate-spin" />
         </div>
