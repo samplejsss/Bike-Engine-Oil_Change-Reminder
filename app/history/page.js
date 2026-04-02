@@ -216,7 +216,7 @@ export default function HistoryPage() {
                   <Bike size={48} className="text-slate-600 mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">No rides yet</h3>
                   <p className="text-slate-400 max-w-sm">
-                    Head over to the dashboard to log your first ride and start tracking your bike's health.
+                    Head over to the dashboard to log your first ride and start tracking your bike&apos;s health.
                   </p>
                 </motion.div>
               ) : (

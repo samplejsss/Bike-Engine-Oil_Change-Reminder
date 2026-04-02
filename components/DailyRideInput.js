@@ -113,7 +113,7 @@ export default function DailyRideInput({ onRideAdded, quickAddKm = 0, mechanicPh
           <Bike size={18} className="text-white" />
         </div>
         <div>
-          <h3 className="font-semibold text-white">Add Today's Ride</h3>
+          <h3 className="font-semibold text-white">Add Today&apos;s Ride</h3>
           <p className="text-xs text-slate-500">Log your daily kilometers</p>
         </div>
       </div>
