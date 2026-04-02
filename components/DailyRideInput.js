@@ -69,22 +69,30 @@ export default function DailyRideInput({ onRideAdded, quickAddKm = 0, mechanicPh
 
         const cleanPhone = mechanicPhone.replace(/\D/g, "");
         if (cleanPhone) {
-          // Auto-fire WhatsApp first
-          try {
-            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(details)}`, "_blank");
-          } catch(e) { console.warn("WhatsApp open failed", e); }
+          // To ensure both apps trigger, we use a hidden link click instead of direct href replacement.
+          // iOS uses '&body=' while Android uses '?body='. Using '?&body=' is a safe fallback for many devices.
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || "");
+          const smsUri = `sms:${cleanPhone}${isIOS ? '&' : '?'}body=${encodeURIComponent(details)}`;
+          const waUri = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(details)}`;
 
-          // Auto-fire SMS after short delay (so browser doesn't block immediate double-popup)
+          // Fire SMS first (triggers native app)
+          try {
+            const smsLink = document.createElement("a");
+            smsLink.href = smsUri;
+            smsLink.click();
+          } catch(e) { console.warn("SMS open failed", e); }
+
+          // Auto-fire WhatsApp after short delay
           setTimeout(() => {
             try {
-              window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(details)}`;
-            } catch(e) { console.warn("SMS open failed", e); }
-          }, 800);
+              window.open(waUri, "_blank");
+            } catch(e) { console.warn("WhatsApp open failed", e); }
+          }, 600);
 
           // Also set share links as manual fallback in case popups were blocked
           setShareLinks({
-            wa: `https://wa.me/${cleanPhone}?text=${encodeURIComponent(details)}`,
-            sms: `sms:${cleanPhone}?body=${encodeURIComponent(details)}`
+            wa: waUri,
+            sms: smsUri
           });
         }
       }
