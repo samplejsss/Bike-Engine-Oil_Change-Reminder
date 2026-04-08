@@ -17,7 +17,6 @@ export default function AIAdvisorPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKeyMissing, setApiKeyMissing] = useState(false);
 
   const messagesEndRef = useRef(null);
 
@@ -78,7 +77,6 @@ export default function AIAdvisorPage() {
     setInput("");
     setMessages(prev => [...prev, { role: "user", text: userMsg }]);
     setIsLoading(true);
-    setApiKeyMissing(false);
 
     try {
       const res = await fetch("/api/ai", {
@@ -101,9 +99,7 @@ export default function AIAdvisorPage() {
            errMsg = errText.substring(0, 80); // Catch HTML error splash text safely
         }
         
-        if (errMsg && errMsg.includes("API Key")) {
-           setApiKeyMissing(true);
-        } else {
+        if (errMsg) {
            throw new Error(errMsg);
         }
       } else {
@@ -141,7 +137,7 @@ export default function AIAdvisorPage() {
 
         {/* Chat Area */}
         <div className="flex-1 overflow-y-auto pr-2 pb-4 space-y-6">
-           {messages.length === 0 && !apiKeyMissing && (
+           {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-6 opacity-80 mt-10">
                  <div className="w-16 h-16 rounded-2xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30">
                     <Bot size={32} className="text-purple-400" />
@@ -164,19 +160,6 @@ export default function AIAdvisorPage() {
                     ))}
                  </div>
               </div>
-           )}
-
-           {apiKeyMissing && (
-             <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl flex items-start gap-4 mx-auto max-w-xl mt-10">
-                <KeyRound className="text-red-400 shrink-0 mt-1" />
-                <div>
-                   <h3 className="text-red-400 font-bold mb-1">Missing Gemini API Key</h3>
-                   <p className="text-sm text-slate-300 mb-3">To use the free AI Advisor, please add your Google Gemini API Key. Ask the developer to configure <code>GEMINI_API_KEY</code> in the <code>.env.local</code> file.</p>
-                   <a href="https://aistudio.google.com/app/apikey" target="_ blank" rel="noreferrer" className="text-xs bg-white/10 px-3 py-1.5 rounded-lg hover:bg-white/20 transition-colors text-white inline-block">
-                     Get Free API Key &rarr;
-                   </a>
-                </div>
-             </motion.div>
            )}
 
            {messages.map((msg, i) => (
