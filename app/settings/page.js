@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveBike } from "@/hooks/useActiveBike";
+import { computeNextDue } from "@/lib/maintenanceUtils";
 import Navbar from "@/components/Navbar";
 import { Settings, Save, Loader2, Smartphone, Bell, Bike, Navigation } from "lucide-react";
 import toast from "react-hot-toast";
@@ -28,6 +29,8 @@ export default function SettingsPage() {
     oilChangeInterval: 2000,
     lastOilChangeDate: "",
   });
+  const [maintenanceTasks, setMaintenanceTasks] = useState([]);
+  const [newTask, setNewTask] = useState({ taskName: "", intervalKm: "", intervalDays: "" });
 
   useEffect(() => {
     if (!authLoading && !user) router.push("/login");
@@ -89,6 +92,79 @@ export default function SettingsPage() {
     };
     loadBike();
   }, [user, activeBikeId]);
+
+  const loadMaintenanceTasks = useCallback(async () => {
+    if (!user || !activeBikeId) return;
+    try {
+      const ref = collection(db, "users", user.uid, "bikes", activeBikeId, "maintenanceTasks");
+      const snap = await getDocs(ref);
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      list.sort((a, b) => String(a.taskName).localeCompare(String(b.taskName)));
+      setMaintenanceTasks(list);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [user, activeBikeId]);
+
+  useEffect(() => {
+    loadMaintenanceTasks();
+  }, [loadMaintenanceTasks]);
+
+  const updateTaskInterval = async (taskId, patch) => {
+    if (!user || !activeBikeId) return;
+    const taskRef = doc(db, "users", user.uid, "bikes", activeBikeId, "maintenanceTasks", taskId);
+    const current = maintenanceTasks.find((t) => t.id === taskId);
+    const intervalKm = patch.intervalKm === "" ? null : Number(patch.intervalKm);
+    const intervalDays = patch.intervalDays === "" ? null : Number(patch.intervalDays);
+    const next = computeNextDue({
+      lastDoneKm: Number(current?.lastDoneKm || 0),
+      lastDoneDate: current?.lastDoneDate || new Date(),
+      intervalKm,
+      intervalDays,
+    });
+    await updateDoc(taskRef, {
+      intervalKm,
+      intervalDays,
+      nextDueKm: next.nextDueKm,
+      nextDueDate: next.nextDueDate,
+    });
+    await loadMaintenanceTasks();
+  };
+
+  const addCustomTask = async () => {
+    if (!user || !activeBikeId) return;
+    if (!newTask.taskName.trim()) {
+      toast.error("Task name is required.");
+      return;
+    }
+    const intervalKm = newTask.intervalKm === "" ? null : Number(newTask.intervalKm);
+    const intervalDays = newTask.intervalDays === "" ? null : Number(newTask.intervalDays);
+    if (intervalKm == null && intervalDays == null) {
+      toast.error("Provide km or days interval.");
+      return;
+    }
+    const baseKm = Number(bikeForm.oilChangeInterval || 0);
+    const next = computeNextDue({
+      lastDoneKm: baseKm,
+      lastDoneDate: new Date(),
+      intervalKm,
+      intervalDays,
+    });
+    await addDoc(collection(db, "users", user.uid, "bikes", activeBikeId, "maintenanceTasks"), {
+      taskName: newTask.taskName.trim(),
+      intervalKm,
+      intervalDays,
+      lastDoneKm: baseKm,
+      lastDoneDate: new Date(),
+      nextDueKm: next.nextDueKm,
+      nextDueDate: next.nextDueDate,
+      notes: "",
+      createdAt: new Date(),
+    });
+    setNewTask({ taskName: "", intervalKm: "", intervalDays: "" });
+    toast.success("Custom task added.");
+    await loadMaintenanceTasks();
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -292,6 +368,77 @@ export default function SettingsPage() {
                     >
                       Set as default
                     </motion.button>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
+                    <Bell size={18} className="text-amber-400" /> Maintenance Intervals
+                  </h3>
+                  <div className="space-y-3">
+                    {maintenanceTasks.map((task) => (
+                      <div key={task.id} className="p-3 rounded-xl bg-slate-900/40 border border-white/10">
+                        <p className="text-sm text-white font-medium mb-2">{task.taskName}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            type="number"
+                            defaultValue={task.intervalKm ?? ""}
+                            placeholder="Interval KM"
+                            className="glass-input"
+                            onBlur={(e) =>
+                              updateTaskInterval(task.id, {
+                                intervalKm: e.target.value,
+                                intervalDays: task.intervalDays ?? "",
+                              })
+                            }
+                          />
+                          <input
+                            type="number"
+                            defaultValue={task.intervalDays ?? ""}
+                            placeholder="Interval Days"
+                            className="glass-input"
+                            onBlur={(e) =>
+                              updateTaskInterval(task.id, {
+                                intervalKm: task.intervalKm ?? "",
+                                intervalDays: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    <div className="p-3 rounded-xl bg-slate-900/50 border border-white/10">
+                      <p className="text-xs text-slate-400 mb-2">Add custom task</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <input
+                          className="glass-input"
+                          placeholder="Task name"
+                          value={newTask.taskName}
+                          onChange={(e) => setNewTask({ ...newTask, taskName: e.target.value })}
+                        />
+                        <input
+                          className="glass-input"
+                          type="number"
+                          placeholder="KM interval"
+                          value={newTask.intervalKm}
+                          onChange={(e) => setNewTask({ ...newTask, intervalKm: e.target.value })}
+                        />
+                        <input
+                          className="glass-input"
+                          type="number"
+                          placeholder="Days interval"
+                          value={newTask.intervalDays}
+                          onChange={(e) => setNewTask({ ...newTask, intervalDays: e.target.value })}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={addCustomTask}
+                        className="mt-2 px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-200 text-sm font-semibold"
+                      >
+                        Add Task
+                      </button>
+                    </div>
                   </div>
                 </div>
 

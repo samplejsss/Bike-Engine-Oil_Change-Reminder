@@ -1,6 +1,7 @@
 import "./globals.css";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ActiveBikeProvider } from "@/hooks/useActiveBike";
+import FcmInitializer from "@/components/FcmInitializer";
 import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 
@@ -20,6 +21,7 @@ export default function RootLayout({ children }) {
       <body suppressHydrationWarning>
         <AuthProvider>
           <ActiveBikeProvider>
+            <FcmInitializer />
             <div className="bg-mesh" aria-hidden="true" />
             <div className="relative z-10 w-full overflow-x-hidden min-h-screen">
               {children}

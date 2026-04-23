@@ -86,3 +86,60 @@ exports.monthlyReportCron = functions.scheduler.onSchedule("0 9 1 * *", async (e
     console.error("Error sending monthly reports:", error);
   }
 });
+
+exports.documentExpiryNotifier = functions.scheduler.onSchedule("0 8 * * *", async () => {
+  const db = admin.firestore();
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const expiryTargets = [30, 7, 1];
+
+  try {
+    const docsSnap = await db.collectionGroup("documents").get();
+    for (const docSnap of docsSnap.docs) {
+      const data = docSnap.data() || {};
+      const expiryDateRaw = data.expiryDate;
+      const expiryDate = expiryDateRaw?.toDate ? expiryDateRaw.toDate() : null;
+      if (!expiryDate) continue;
+
+      const daysLeft = Math.ceil((expiryDate.getTime() - startOfToday.getTime()) / (24 * 60 * 60 * 1000));
+      if (!expiryTargets.includes(daysLeft)) continue;
+
+      const alreadyNotified = Array.isArray(data.notifiedDays)
+        ? data.notifiedDays.includes(String(daysLeft))
+        : false;
+      if (alreadyNotified) continue;
+
+      const segments = docSnap.ref.path.split("/");
+      // users/{uid}/bikes/{bikeId}/documents/{docId}
+      if (segments.length < 6) continue;
+      const uid = segments[1];
+      const bikeId = segments[3];
+
+      const userSnap = await db.collection("users").doc(uid).get();
+      const userData = userSnap.exists ? userSnap.data() || {} : {};
+      const tokens = Array.isArray(userData.fcmTokens) ? userData.fcmTokens.filter(Boolean) : [];
+      if (!tokens.length) continue;
+
+      const title = "Document Expiry Reminder";
+      const body = `${data.type || "Document"} "${data.fileName || "file"}" expires in ${daysLeft} day${daysLeft === 1 ? "" : "s"}.`;
+
+      await admin.messaging().sendEachForMulticast({
+        tokens,
+        notification: { title, body },
+        data: {
+          bikeId: String(bikeId),
+          documentId: String(docSnap.id),
+          daysLeft: String(daysLeft),
+          route: "/documents",
+        },
+      });
+
+      await docSnap.ref.update({
+        notifiedDays: admin.firestore.FieldValue.arrayUnion(String(daysLeft)),
+      });
+    }
+    console.log("Document expiry notifier run complete.");
+  } catch (err) {
+    console.error("Document expiry notifier error:", err);
+  }
+});

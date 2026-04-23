@@ -17,6 +17,7 @@ import ExpenseInput from "@/components/ExpenseInput";
 import MaintenanceChecklist from "@/components/MaintenanceChecklist";
 import AlertModal from "@/components/AlertModal";
 import { playWarningSound, sendBrowserNotification } from "@/hooks/useNotifications";
+import { getDocumentStatus } from "@/lib/documentUtils";
 import {
   Bike,
   MapPin,
@@ -44,6 +45,8 @@ export default function DashboardPage() {
   const [totalKmFromHistory, setTotalKmFromHistory] = useState(0);
   const [fuelEntries, setFuelEntries] = useState([]);
   const [dueSoonCount, setDueSoonCount] = useState(0);
+  const [expiringDocs, setExpiringDocs] = useState([]);
+  const [insuranceCountdown, setInsuranceCountdown] = useState(null);
 
 
   const fetchUserData = useCallback(async () => {
@@ -148,6 +151,23 @@ export default function DashboardPage() {
         if (overdue || soon) count += 1;
       });
       setDueSoonCount(count);
+
+      const docsSnap = await getDocs(collection(db, "users", user.uid, "bikes", activeBikeId, "documents"));
+      const attention = [];
+      let insuranceDays = null;
+      docsSnap.forEach((docSnap) => {
+        const d = docSnap.data() || {};
+        const statusInfo = getDocumentStatus(d.expiryDate);
+        if (statusInfo.daysLeft != null && statusInfo.daysLeft <= 30) {
+          attention.push({ id: docSnap.id, ...d, daysLeft: statusInfo.daysLeft, status: statusInfo.status });
+        }
+        if (String(d.type || "").toLowerCase() === "insurance") {
+          insuranceDays = statusInfo.daysLeft;
+        }
+      });
+      attention.sort((a, b) => (a.daysLeft ?? 9999) - (b.daysLeft ?? 9999));
+      setExpiringDocs(attention);
+      setInsuranceCountdown(insuranceDays);
     } catch(err) {
       console.error(err);
     }
@@ -321,6 +341,27 @@ export default function DashboardPage() {
             </motion.div>
           )}
 
+          {typeof insuranceCountdown === "number" && insuranceCountdown <= 30 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 flex items-start gap-3"
+            >
+              <AlertTriangle className="text-amber-300 mt-0.5" size={18} />
+              <div>
+                <p className="text-amber-200 text-sm font-semibold">
+                  Insurance {insuranceCountdown <= 0 ? "expired" : `expires in ${insuranceCountdown} days`}
+                </p>
+                <button
+                  onClick={() => router.push("/documents")}
+                  className="text-xs text-amber-100 underline mt-1"
+                >
+                  Open Document Vault
+                </button>
+              </div>
+            </motion.div>
+          )}
+
           {/* Stats Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
@@ -400,6 +441,30 @@ export default function DashboardPage() {
               >
                 Review maintenance tasks
               </motion.button>
+            </div>
+          )}
+
+          {expiringDocs.length > 0 && (
+            <div className="mb-8 glass rounded-2xl border border-white/10 p-5">
+              <h3 className="text-white font-semibold mb-3">Attention Required</h3>
+              <div className="space-y-2">
+                {expiringDocs.slice(0, 5).map((d) => (
+                  <div key={d.id} className="flex items-center justify-between text-sm bg-slate-900/40 rounded-xl px-3 py-2 border border-white/5">
+                    <span className="text-slate-200">{d.type}: {d.fileName}</span>
+                    <span className={d.daysLeft <= 0 ? "text-red-300" : "text-amber-300"}>
+                      {d.daysLeft <= 0 ? `Expired ${Math.abs(d.daysLeft)}d ago` : `${d.daysLeft}d left`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex justify-end">
+                <button
+                  onClick={() => router.push("/documents")}
+                  className="px-3 py-1.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-sm font-semibold"
+                >
+                  Manage documents
+                </button>
+              </div>
             </div>
           )}
 
