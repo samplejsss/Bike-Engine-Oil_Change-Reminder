@@ -14,13 +14,22 @@
   },
   "main": "index.js",
   "dependencies": {
-    "firebase-admin": "^12.1.0",
-    "firebase-functions": "^5.0.0",
-    "nodemailer": "^6.9.13"
+    "firebase-admin": "^13.8.0",
+    "firebase-functions": "^7.2.5",
+    "nodemailer": "^8.0.5"
   },
   "devDependencies": {
     "eslint": "^8.9.0",
     "eslint-config-google": "^0.14.0"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "@google-cloud/firestore": "8.5.0",
+    "google-gax": "5.0.6",
+    "gaxios": "7.1.4",
+    "retry-request": "8.0.2",
+    "teeny-request": "10.1.2",
+    "@tootallnate/once": "3.0.1",
+    "uuid": "14.0.0"
+  }
 }
