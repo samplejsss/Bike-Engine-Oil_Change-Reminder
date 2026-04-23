@@ -27,6 +27,7 @@ export default function Navbar() {
         { href: "/history", label: "History", icon: HistoryIcon },
         { href: "/fuel", label: "Fuel", icon: Fuel },
         { href: "/bikes", label: "Bikes", icon: Bike },
+        { href: "/maintenance", label: "Maintenance", icon: Settings },
         { href: "/analytics", label: "Analytics", icon: TrendingUp },
         { href: "/advisor", label: "Advisor", icon: Sparkles },
         { href: "/settings", label: "Settings", icon: Settings },

@@ -28,6 +28,7 @@ import {
   Fuel,
   AlertTriangle,
   IndianRupee,
+  ClipboardList,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -42,6 +43,7 @@ export default function DashboardPage() {
   const [avgDailyKm, setAvgDailyKm] = useState(0);
   const [totalKmFromHistory, setTotalKmFromHistory] = useState(0);
   const [fuelEntries, setFuelEntries] = useState([]);
+  const [dueSoonCount, setDueSoonCount] = useState(0);
 
 
   const fetchUserData = useCallback(async () => {
@@ -122,10 +124,34 @@ export default function DashboardPage() {
       const fuelLogsSnap = await getDocs(fuelLogsQueryScoped);
       const logs = fuelLogsSnap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
       setFuelEntries(buildFuelEntriesWithEfficiency(logs));
+
+      const tasksSnap = await getDocs(
+        collection(db, "users", user.uid, "bikes", activeBikeId, "maintenanceTasks")
+      );
+      let count = 0;
+      const now = new Date();
+      const dueSoonKm = 200;
+      const dueSoonDays = 7;
+      const currentOdo = Number(bikeData?.lastOdometerReading || totalSum || 0);
+      tasksSnap.forEach((docSnap) => {
+        const t = docSnap.data() || {};
+        const nextKm = typeof t.nextDueKm === "number" ? t.nextDueKm : null;
+        const nextDate = t.nextDueDate?.toDate
+          ? t.nextDueDate.toDate()
+          : t.nextDueDate?.seconds
+            ? new Date(t.nextDueDate.seconds * 1000)
+            : null;
+        const kmRem = nextKm != null ? nextKm - currentOdo : null;
+        const daysRem = nextDate ? Math.ceil((nextDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)) : null;
+        const overdue = (kmRem != null && kmRem <= 0) || (daysRem != null && daysRem <= 0);
+        const soon = !overdue && ((kmRem != null && kmRem <= dueSoonKm) || (daysRem != null && daysRem <= dueSoonDays));
+        if (overdue || soon) count += 1;
+      });
+      setDueSoonCount(count);
     } catch(err) {
       console.error(err);
     }
-  }, [user, activeBikeId]);
+  }, [user, activeBikeId, bikeData?.lastOdometerReading]);
 
   useEffect(() => {
     if (user && activeBikeId) {
@@ -296,7 +322,7 @@ export default function DashboardPage() {
           )}
 
           {/* Stats Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
               icon={MapPin}
               label="Total KM Ridden"
@@ -354,7 +380,28 @@ export default function DashboardPage() {
               color="blue"
               delay={0.6}
             />
+            <StatCard
+              icon={ClipboardList}
+              label="Maintenance Tasks"
+              value={`${dueSoonCount}`}
+              sub="Due soon / overdue"
+              color={dueSoonCount > 0 ? "blue" : "green"}
+              delay={0.7}
+            />
           </div>
+
+          {dueSoonCount > 0 && (
+            <div className="mb-8 flex justify-end">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => router.push("/maintenance")}
+                className="px-4 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-sm font-semibold"
+              >
+                Review maintenance tasks
+              </motion.button>
+            </div>
+          )}
 
           {/* Main Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
