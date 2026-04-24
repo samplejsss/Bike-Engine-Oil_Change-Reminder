@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveBike } from "@/hooks/useActiveBike";
 import Navbar from "@/components/Navbar";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wallet, Plus, Filter, Calendar, TrendingUp, IndianRupee, Image as ImageIcon, X, Trash2 } from "lucide-react";
+import { Wallet, Plus, Filter, Calendar, TrendingUp, IndianRupee, Image as ImageIcon, X, Trash2, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
 
 const CATEGORIES = ["Fuel", "Service", "Parts", "Insurance", "Parking", "Other"];
@@ -145,6 +145,35 @@ export default function ExpensesPage() {
     return filteredExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
   }, [filteredExpenses]);
 
+  const categoryMonthlyTotals = useMemo(() => {
+    const totals = {};
+    const now = new Date();
+    expenses.forEach(exp => {
+      const expDate = exp.date?.toDate ? exp.date.toDate() : new Date(exp.date);
+      if (expDate.getMonth() === now.getMonth() && expDate.getFullYear() === now.getFullYear()) {
+        const cat = exp.category || "Other";
+        totals[cat] = (totals[cat] || 0) + exp.amount;
+      }
+    });
+    return totals;
+  }, [expenses]);
+
+  const budgetWarnings = useMemo(() => {
+    if (!activeBike?.budget) return [];
+    const warnings = [];
+    Object.entries(activeBike.budget).forEach(([cat, limit]) => {
+      if (limit > 0) {
+        const spent = categoryMonthlyTotals[cat] || 0;
+        if (spent >= limit) {
+          warnings.push({ cat, type: "exceeded", limit, spent });
+        } else if (spent >= limit * 0.8) {
+          warnings.push({ cat, type: "warning", limit, spent });
+        }
+      }
+    });
+    return warnings;
+  }, [activeBike?.budget, categoryMonthlyTotals]);
+
   if (!user || !activeBikeId) return null;
 
   return (
@@ -170,6 +199,34 @@ export default function ExpensesPage() {
               {showAdd ? "Cancel" : "Add Expense"}
             </button>
           </motion.div>
+
+          {/* Budget Warnings */}
+          {budgetWarnings.length > 0 && (
+            <div className="mb-6 space-y-2">
+              {budgetWarnings.map((w, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`p-4 rounded-xl flex items-center gap-3 border ${
+                    w.type === "exceeded" 
+                      ? "bg-red-500/10 border-red-500/30 text-red-200" 
+                      : "bg-amber-500/10 border-amber-500/30 text-amber-200"
+                  }`}
+                >
+                  <AlertTriangle size={18} className={w.type === "exceeded" ? "text-red-400" : "text-amber-400"} />
+                  <div>
+                    <p className="text-sm font-semibold">
+                      {w.type === "exceeded" ? "Budget Exceeded" : "Approaching Budget Limit"} - {w.cat}
+                    </p>
+                    <p className="text-xs opacity-80 mt-0.5">
+                      You've spent ₹{w.spent.toLocaleString('en-IN')} of your ₹{w.limit.toLocaleString('en-IN')} monthly limit.
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
 
           {/* Add Form */}
           <AnimatePresence>
