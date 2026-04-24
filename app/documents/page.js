@@ -130,7 +130,7 @@ export default function DocumentsPage() {
 
       const ext = selectedFile.name.split(".").pop() || "file";
       const fileRef = ref(storage, `documents/${user.uid}/${activeBikeId}/${docRef.id}.${ext}`);
-      await uploadBytes(fileRef, selectedFile);
+      await uploadBytes(fileRef, selectedFile, { contentType: selectedFile.type });
       const fileUrl = await getDownloadURL(fileRef);
 
       await updateDoc(doc(db, "users", user.uid, "bikes", activeBikeId, "documents", docRef.id), {
@@ -299,34 +299,14 @@ export default function DocumentsPage() {
                         </p>
                         {d.notes && <p className="text-xs text-slate-500 mt-2 line-clamp-2">{d.notes}</p>}
                         <div className="mt-3 flex justify-end">
-                          {isPdf ? (
-                            d.fileUrl ? (
-                              <a
-                                href={d.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-1.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold inline-block text-center"
-                              >
-                                Open PDF
-                              </a>
-                            ) : (
-                              <button
-                                type="button"
-                                disabled
-                                className="px-3 py-1.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300/50 text-xs font-semibold cursor-not-allowed"
-                              >
-                                Open PDF
-                              </button>
-                            )
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => setViewerDoc(d)}
-                              className="px-3 py-1.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold flex items-center gap-1"
-                            >
-                              <Eye size={13} /> View
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => setViewerDoc(d)}
+                            disabled={!d.fileUrl}
+                            className="px-3 py-1.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold flex items-center gap-1"
+                          >
+                            <Eye size={13} /> View
+                          </button>
                         </div>
                       </motion.div>
                     );
@@ -358,8 +338,12 @@ export default function DocumentsPage() {
                   <X size={16} />
                 </button>
               </div>
-              <div className="bg-black/60 p-3">
-                <img src={viewerDoc.fileUrl} alt={viewerDoc.fileName} className="w-full max-h-[75vh] object-contain rounded-lg" />
+              <div className="bg-black/60 p-3 h-[75vh]">
+                {(viewerDoc.fileName?.toLowerCase().endsWith('.pdf') || viewerDoc.fileUrl?.toLowerCase().includes('.pdf')) ? (
+                  <iframe src={viewerDoc.fileUrl} className="w-full h-full rounded-lg bg-white" title={viewerDoc.fileName} />
+                ) : (
+                  <img src={viewerDoc.fileUrl} alt={viewerDoc.fileName} className="w-full h-full object-contain rounded-lg" />
+                )}
               </div>
             </motion.div>
           </div>

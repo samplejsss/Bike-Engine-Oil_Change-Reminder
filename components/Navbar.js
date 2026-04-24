@@ -221,12 +221,12 @@ export default function Navbar() {
 
       {/* Modern Bottom Navbar (Mobile Only) */}
       {user && (
-        <div className="lg:hidden fixed bottom-6 left-0 right-0 z-50 pointer-events-none flex justify-center px-4">
+        <div className="lg:hidden fixed bottom-6 left-0 right-0 z-50 pointer-events-none flex justify-center px-4 w-full">
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, type: "spring", bounce: 0.4 }}
-            className="glass rounded-[24px] flex items-center overflow-x-auto no-scrollbar px-2 py-2 shadow-2xl border border-white/10 bg-black/40 backdrop-blur-3xl pointer-events-auto snap-x"
+            className="glass rounded-[24px] flex items-center overflow-x-auto no-scrollbar px-2 py-2 shadow-2xl border border-white/10 bg-black/40 backdrop-blur-3xl pointer-events-auto snap-x w-full max-w-full"
           >
             {navLinks.map(({ href, label, icon: Icon }) => {
               const isActive = pathname === href;

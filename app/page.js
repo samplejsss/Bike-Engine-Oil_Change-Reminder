@@ -151,25 +151,24 @@ export default function LandingPage() {
             transition={{ duration: 0.9, delay: 0.5 }}
             className="mt-20 relative max-w-3xl mx-auto"
           >
-            <div className="glass rounded-3xl border border-white/8 p-8 float-anim">
-              <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="glass rounded-3xl border border-white/8 p-4 sm:p-8 float-anim">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
                 {[
                   { label: "Total KM", val: "12,450", color: "text-purple-400" },
                   { label: "Oil Used", val: "73%", color: "text-yellow-400" },
                   { label: "Next Change", val: "540 km", color: "text-green-400" },
                 ].map((s, i) => (
-
-                  <div key={i} className="glass rounded-2xl p-4 border border-white/5 text-center">
-                    <p className={`text-2xl font-bold ${s.color}`}>{s.val}</p>
-                    <p className="text-xs text-slate-500 mt-1">{s.label}</p>
+                  <div key={i} className="glass rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-white/5 text-center flex flex-col justify-center items-center">
+                    <p className={`text-lg sm:text-2xl font-bold ${s.color}`}>{s.val}</p>
+                    <p className="text-[10px] sm:text-xs text-slate-500 mt-1 whitespace-nowrap">{s.label}</p>
                   </div>
                 ))}
               </div>
-              <div className="glass rounded-2xl border border-white/5 p-4 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+              <div className="glass rounded-xl sm:rounded-2xl border border-white/5 p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
                   <Bike size={20} className="text-purple-400" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 w-full text-center sm:text-left">
                   <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
@@ -178,7 +177,7 @@ export default function LandingPage() {
                       className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500"
                     />
                   </div>
-                  <p className="text-xs text-slate-500 mt-2">Oil change progress · 540 of 2,000 km</p>
+                  <p className="text-[10px] sm:text-xs text-slate-500 mt-2">Oil change progress · 540 of 2,000 km</p>
                 </div>
               </div>
             </div>
