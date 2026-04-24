@@ -58,25 +58,38 @@ export default function Navbar() {
               </Link>
 
               {/* Desktop Links */}
-              <div className="hidden md:flex items-center gap-1">
-                {navLinks.map(({ href, label, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
-                      pathname === href
-                        ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                        : "text-slate-400 hover:text-white hover:bg-white/5"
-                    }`}
-                  >
-                    <Icon size={15} />
-                    {label}
-                  </Link>
-                ))}
+              <div className="hidden lg:flex flex-1 items-center gap-1 overflow-x-auto no-scrollbar px-2 mx-4">
+                {navLinks.map(({ href, label, icon: Icon }) => {
+                  const isActive = pathname === href;
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex-shrink-0 group ${
+                        isActive
+                          ? "text-purple-300"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="desktopNavIndicator"
+                          className="absolute inset-0 bg-purple-500/20 border border-purple-500/30 rounded-xl"
+                          initial={false}
+                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+                      )}
+                      <div className="relative z-10 flex items-center gap-2">
+                        <Icon size={16} className={isActive ? "text-purple-400" : "text-slate-500 group-hover:text-purple-400 transition-colors"} />
+                        {label}
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
 
               {user && bikes?.length > 0 && (
-                <div className="hidden md:flex items-center">
+                <div className="hidden lg:flex items-center">
                   <select
                     value={activeBikeId || ""}
                     onChange={(e) => selectBike(e.target.value)}
@@ -92,7 +105,7 @@ export default function Navbar() {
               )}
 
               {/* Auth Buttons (Desktop) */}
-              <div className="hidden md:flex items-center gap-3">
+              <div className="hidden lg:flex items-center gap-3 ml-4">
                 {user ? (
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold shadow-lg">
@@ -117,7 +130,7 @@ export default function Navbar() {
 
               {/* Mobile menu toggle */}
               <button
-                className="md:hidden text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all"
+                className="lg:hidden text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all ml-auto"
                 onClick={() => setMobileOpen(!mobileOpen)}
                 aria-label="Toggle menu"
               >
@@ -134,10 +147,28 @@ export default function Navbar() {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.25 }}
-                className="md:hidden border-t border-white/5 px-4 py-4 glass overflow-hidden"
+                className="lg:hidden border-t border-white/5 px-4 py-4 glass overflow-hidden max-h-[80vh] overflow-y-auto no-scrollbar"
               >
+                {user && bikes?.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs text-slate-500 mb-2 px-2 uppercase tracking-wider font-semibold">Active Bike</p>
+                    <select
+                      value={activeBikeId || ""}
+                      onChange={(e) => { selectBike(e.target.value); setMobileOpen(false); }}
+                      className="glass-input !h-11 text-sm w-full bg-slate-900 border-white/10"
+                    >
+                      {bikes.map((bike) => (
+                        <option key={bike.id} value={bike.id}>
+                          {bike.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 {navLinks.length > 0 && (
                   <div className="space-y-1 mb-3">
+                    <p className="text-xs text-slate-500 mb-2 px-2 uppercase tracking-wider font-semibold">Menu</p>
                     {navLinks.map(({ href, label, icon: Icon }) => (
                       <Link
                         key={href}
@@ -149,7 +180,7 @@ export default function Navbar() {
                             : "text-slate-400 hover:text-white hover:bg-white/5"
                         }`}
                       >
-                        <Icon size={18} />
+                        <Icon size={18} className={pathname === href ? "text-purple-400" : ""} />
                         {label}
                       </Link>
                     ))}
@@ -160,10 +191,10 @@ export default function Navbar() {
                   {user ? (
                     <>
                       <div className="flex items-center gap-3 px-4 py-2 mb-2">
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold">
                           {user.email?.[0]?.toUpperCase()}
                         </div>
-                        <span className="text-slate-400 text-sm truncate">{user.email}</span>
+                        <span className="text-slate-300 text-sm truncate font-medium">{user.email}</span>
                       </div>
                       <button
                         onClick={() => { handleLogout(); setMobileOpen(false); }}
@@ -190,7 +221,7 @@ export default function Navbar() {
 
       {/* Modern Bottom Navbar (Mobile Only) */}
       {user && (
-        <div className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none">
+        <div className="lg:hidden fixed bottom-6 left-0 right-0 z-50 pointer-events-none flex justify-center px-4">
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

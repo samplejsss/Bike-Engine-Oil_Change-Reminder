@@ -162,26 +162,7 @@ export default function DocumentsPage() {
     return groups;
   }, [documents]);
 
-  const handleOpenPdf = async (docItem) => {
-    try {
-      const url = String(docItem?.fileUrl || "").trim();
-      if (!url) {
-        toast.error("PDF URL missing. Please re-upload this document.");
-        return;
-      }
 
-      const link = document.createElement("a");
-      link.href = url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-      console.error(err);
-      toast.error("Could not open PDF.");
-    }
-  };
 
   if (authLoading || bikeLoading || loading) {
     return (
@@ -319,14 +300,24 @@ export default function DocumentsPage() {
                         {d.notes && <p className="text-xs text-slate-500 mt-2 line-clamp-2">{d.notes}</p>}
                         <div className="mt-3 flex justify-end">
                           {isPdf ? (
-                            <button
-                              type="button"
-                              onClick={() => handleOpenPdf(d)}
-                              disabled={!d.fileUrl}
-                              className="px-3 py-1.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold"
-                            >
-                              Open PDF
-                            </button>
+                            d.fileUrl ? (
+                              <a
+                                href={d.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold inline-block text-center"
+                              >
+                                Open PDF
+                              </a>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled
+                                className="px-3 py-1.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300/50 text-xs font-semibold cursor-not-allowed"
+                              >
+                                Open PDF
+                              </button>
+                            )
                           ) : (
                             <button
                               type="button"
