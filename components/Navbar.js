@@ -6,7 +6,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveBike } from "@/hooks/useActiveBike";
-import { Bike, LayoutDashboard, History as HistoryIcon, LogOut, LogIn, Menu, X, TrendingUp, Settings, Sparkles, Fuel, FileText } from "lucide-react";
+import { Bike, LayoutDashboard, History as HistoryIcon, LogOut, LogIn, Menu, X, TrendingUp, Settings, Sparkles, Fuel, FileText, Wallet } from "lucide-react";
 import { useState } from "react";
 
 export default function Navbar() {
@@ -26,6 +26,7 @@ export default function Navbar() {
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { href: "/history", label: "History", icon: HistoryIcon },
         { href: "/fuel", label: "Fuel", icon: Fuel },
+        { href: "/expenses", label: "Expenses", icon: Wallet },
         { href: "/bikes", label: "Bikes", icon: Bike },
         { href: "/maintenance", label: "Maintenance", icon: Settings },
         { href: "/documents", label: "Documents", icon: FileText },

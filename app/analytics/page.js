@@ -161,6 +161,7 @@ export default function AnalyticsPage() {
     return r.dateObj >= cutoff;
   }).length;
   const avgKmPerRide = totalRides > 0 ? totalKmFiltered / totalRides : 0;
+  const costPerKm = totalKmFiltered > 0 ? totalExpenseFiltered / totalKmFiltered : 0;
   const fuelEntries = buildFuelEntriesWithEfficiency(fuelLogs);
   const avgFuelEfficiency = getRecentAverageKmpl(fuelEntries, 3);
   const fuelTrendData = fuelEntries
@@ -282,7 +283,8 @@ export default function AnalyticsPage() {
             {[
               { label: "Rides Logged", value: totalRides, unit: "rides", icon: Activity, color: "text-purple-400", bg: "bg-purple-500/10" },
               { label: "Distance", value: totalKmFiltered.toFixed(1), unit: "km", icon: MapPin, color: "text-blue-400", bg: "bg-blue-500/10" },
-              { label: "Total Spent", value: `₹${totalExpenseFiltered.toLocaleString()}`, unit: "", icon: IndianRupee, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+              { label: "Total Spent", value: `₹${totalExpenseFiltered.toLocaleString('en-IN')}`, unit: "", icon: IndianRupee, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+              { label: "Cost per KM", value: `₹${costPerKm.toFixed(2)}`, unit: "/km", icon: IndianRupee, color: "text-rose-400", bg: "bg-rose-500/10" },
               { label: "Avg per Ride", value: avgKmPerRide.toFixed(1), unit: "km", icon: TrendingUp, color: "text-cyan-400", bg: "bg-cyan-500/10" },
               { label: "Fuel Efficiency", value: avgFuelEfficiency ? avgFuelEfficiency.toFixed(2) : "--", unit: avgFuelEfficiency ? "km/L" : "", icon: Fuel, color: "text-amber-400", bg: "bg-amber-500/10" },
             ].map((s, i) => (

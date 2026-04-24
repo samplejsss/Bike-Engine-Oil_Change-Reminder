@@ -47,6 +47,7 @@ export default function DashboardPage() {
   const [dueSoonCount, setDueSoonCount] = useState(0);
   const [expiringDocs, setExpiringDocs] = useState([]);
   const [insuranceCountdown, setInsuranceCountdown] = useState(null);
+  const [monthlyExpenses, setMonthlyExpenses] = useState({ total: 0, topCategory: "None" });
 
 
   const fetchUserData = useCallback(async () => {
@@ -168,6 +169,26 @@ export default function DashboardPage() {
       attention.sort((a, b) => (a.daysLeft ?? 9999) - (b.daysLeft ?? 9999));
       setExpiringDocs(attention);
       setInsuranceCountdown(insuranceDays);
+
+      const expQuery = query(collection(db, "users", user.uid, "bikes", activeBikeId, "expenses"));
+      const expSnap = await getDocs(expQuery);
+      let mTotal = 0;
+      const mCats = {};
+      const startOfM = new Date(now.getFullYear(), now.getMonth(), 1);
+      expSnap.forEach((docSnap) => {
+        const d = docSnap.data() || {};
+        const dt = d.date?.toDate ? d.date.toDate() : new Date(d.date);
+        if (dt >= startOfM) {
+          mTotal += (d.amount || 0);
+          const c = d.category || "Other";
+          mCats[c] = (mCats[c] || 0) + (d.amount || 0);
+        }
+      });
+      let topCat = "None";
+      let topAmt = 0;
+      Object.entries(mCats).forEach(([k, v]) => { if (v > topAmt) { topAmt = v; topCat = k; } });
+      setMonthlyExpenses({ total: mTotal, topCategory: topCat });
+
     } catch(err) {
       console.error(err);
     }
@@ -407,16 +428,16 @@ export default function DashboardPage() {
             />
             <StatCard
               icon={IndianRupee}
-              label="Fuel Cost (Month)"
-              value={`Rs ${monthlyFuelCost.toFixed(0)}`}
-              sub="Total fuel spend this month"
-              color="cyan"
+              label="Expenses (Month)"
+              value={`₹${monthlyExpenses.total.toLocaleString('en-IN')}`}
+              sub={monthlyExpenses.topCategory !== "None" ? `Top: ${monthlyExpenses.topCategory}` : "Total spend this month"}
+              color="amber"
               delay={0.5}
             />
             <StatCard
               icon={Droplets}
               label="Fuel Cost / KM"
-              value={costPerKm ? `Rs ${costPerKm.toFixed(2)}` : "--"}
+              value={costPerKm ? `₹${costPerKm.toFixed(2)}` : "--"}
               sub="Fuel spend per kilometer"
               color="blue"
               delay={0.6}

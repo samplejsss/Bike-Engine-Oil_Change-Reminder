@@ -8,8 +8,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveBike } from "@/hooks/useActiveBike";
 import { computeNextDue } from "@/lib/maintenanceUtils";
 import Navbar from "@/components/Navbar";
-import { Settings, Save, Loader2, Smartphone, Bell, Bike, Navigation } from "lucide-react";
+import { Settings, Save, Loader2, Smartphone, Bell, Bike, Navigation, IndianRupee } from "lucide-react";
 import toast from "react-hot-toast";
+
+const CATEGORIES = ["Fuel", "Service", "Parts", "Insurance", "Parking", "Other"];
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -31,6 +33,9 @@ export default function SettingsPage() {
   });
   const [maintenanceTasks, setMaintenanceTasks] = useState([]);
   const [newTask, setNewTask] = useState({ taskName: "", intervalKm: "", intervalDays: "" });
+  const [budgetForm, setBudgetForm] = useState({
+    Fuel: "", Service: "", Parts: "", Insurance: "", Parking: "", Other: ""
+  });
 
   useEffect(() => {
     if (!authLoading && !user) router.push("/login");
@@ -83,6 +88,14 @@ export default function SettingsPage() {
                   .toISOString()
                   .split("T")[0]
               : "",
+          });
+          setBudgetForm({
+            Fuel: b.budget?.Fuel || "",
+            Service: b.budget?.Service || "",
+            Parts: b.budget?.Parts || "",
+            Insurance: b.budget?.Insurance || "",
+            Parking: b.budget?.Parking || "",
+            Other: b.budget?.Other || "",
           });
         }
       } catch (err) {
@@ -184,6 +197,14 @@ export default function SettingsPage() {
         const bikePatch = {
           name: bikeForm.name,
           oilChangeInterval: Number(bikeForm.oilChangeInterval),
+          budget: {
+            Fuel: Number(budgetForm.Fuel) || 0,
+            Service: Number(budgetForm.Service) || 0,
+            Parts: Number(budgetForm.Parts) || 0,
+            Insurance: Number(budgetForm.Insurance) || 0,
+            Parking: Number(budgetForm.Parking) || 0,
+            Other: Number(budgetForm.Other) || 0,
+          }
         };
         if (bikeForm.lastOilChangeDate) bikePatch.lastOilChangeDate = new Date(bikeForm.lastOilChangeDate);
         await setDoc(bikeRef, bikePatch, { merge: true });
@@ -439,6 +460,27 @@ export default function SettingsPage() {
                         Add Task
                       </button>
                     </div>
+                  </div>
+                </div>
+
+                {/* Budget Section */}
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
+                    <IndianRupee size={18} className="text-emerald-400" /> Monthly Budgets (₹)
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {CATEGORIES.map(c => (
+                      <div key={c}>
+                        <label className="block text-sm font-medium text-slate-400 mb-1">{c}</label>
+                        <input
+                          type="number"
+                          value={budgetForm[c]}
+                          onChange={e => setBudgetForm({...budgetForm, [c]: e.target.value})}
+                          className="glass-input w-full"
+                          placeholder="No limit"
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
 
