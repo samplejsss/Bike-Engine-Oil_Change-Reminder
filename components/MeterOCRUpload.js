@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Camera, Image as ImageIcon, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Camera, Image as Loader2, CheckCircle, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 // Will use Tesseract dynamically to prevent build issues with Canvas/Node

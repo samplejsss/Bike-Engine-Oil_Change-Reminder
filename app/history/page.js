@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveBike } from "@/hooks/useActiveBike";
 import Navbar from "@/components/Navbar";
 import PageLoader from "@/components/PageLoader";
-import { Calendar, Clock, Bike, Loader2, Edit2, Trash2, Check, X as XIcon, History as HistoryIcon, Download } from "lucide-react";
+import { Calendar, Clock, Bike, Loader2, Edit2, Trash2, Check, X as XIcon, Download } from "lucide-react";
 import CalendarComponent from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 

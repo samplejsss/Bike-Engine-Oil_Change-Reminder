@@ -68,7 +68,7 @@ export default function LandingPage() {
   const { activeBike } = useActiveBike();
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+     
     setParticles(Array.from({ length: 40 }, (_, i) => ({
       id: i, size: Math.random() * 2.5 + 0.5,
       x: Math.random() * 100, y: Math.random() * 100,

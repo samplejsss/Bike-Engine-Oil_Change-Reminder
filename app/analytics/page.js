@@ -15,7 +15,7 @@ import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
 } from "recharts";
-import { Loader2, TrendingUp, IndianRupee, MapPin, Image as ImageIcon, FileText, FileSpreadsheet, Activity, Fuel, Tag } from "lucide-react";
+import { TrendingUp, IndianRupee, MapPin, Image as ImageIcon, FileText, FileSpreadsheet, Activity, Fuel, Tag } from "lucide-react";
 import { format, subDays, isSameDay, startOfMonth, startOfDay } from "date-fns";
 
 const EXPENSE_COLORS = {

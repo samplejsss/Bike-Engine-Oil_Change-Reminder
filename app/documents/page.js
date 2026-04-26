@@ -14,7 +14,7 @@ import {
   updateDoc,
   deleteDoc,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { deleteObject } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveBike } from "@/hooks/useActiveBike";
@@ -298,7 +298,7 @@ export default function DocumentsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(grouped[type] || []).map((d) => {
                     const { status, daysLeft } = getDocumentStatus(d.expiryDate);
-                    const isPdf = /\.pdf$/i.test(d.fileName || "") || String(d.fileUrl || "").includes(".pdf");
+                    
                     return (
                       <motion.div
                         key={d.id}

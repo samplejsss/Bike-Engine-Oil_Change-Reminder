@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import MaintenanceChecklist from "@/components/MaintenanceChecklist";
 import PageLoader from "@/components/PageLoader";
 import { useAuth } from "@/hooks/useAuth";
-import { CheckSquare, Loader2 } from "lucide-react";
+import { CheckSquare, } from "lucide-react";
 
 export default function ChecklistsPage() {
   const { user, loading: authLoading } = useAuth();
