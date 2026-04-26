@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Bike, Gauge, Bell, History, ArrowRight, CheckCircle, Sparkles, BarChart2, Zap, TrendingUp, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
+import Image from "next/image";
 
 const features = [
   {
@@ -165,8 +166,8 @@ export default function LandingPage() {
                 ))}
               </div>
               <div className="glass rounded-xl sm:rounded-2xl border border-white/5 p-3 sm:p-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0">
-                  <Bike size={20} className="text-purple-400" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-white/10 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                  <Image src="/logo.png" alt="BikeCare Logo" width={48} height={48} className="object-cover" />
                 </div>
                 <div className="flex-1 w-full text-center sm:text-left">
                   <div className="h-2 bg-white/5 rounded-full overflow-hidden">

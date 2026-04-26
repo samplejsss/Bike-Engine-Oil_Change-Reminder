@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveBike } from "@/hooks/useActiveBike";
 import { Bike, LayoutDashboard, History as HistoryIcon, LogOut, LogIn, Menu, X, TrendingUp, Settings, Sparkles, Fuel, FileText, Wallet } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -50,12 +51,12 @@ export default function Navbar() {
               {/* Logo */}
               <Link href="/" className="flex items-center gap-2 group">
                 <div className="relative">
-                  <div className="w-8 h-8 rounded-lg btn-glow flex items-center justify-center">
-                    <Bike className="text-white" size={18} />
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden border border-white/10 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                    <Image src="/logo.png" alt="BikeCare Logo" width={36} height={36} className="object-cover" />
                   </div>
-                  <div className="absolute inset-0 rounded-lg bg-purple-500/30 blur-md group-hover:blur-lg transition-all" />
+                  <div className="absolute inset-0 rounded-xl bg-purple-500/30 blur-md group-hover:blur-lg transition-all" />
                 </div>
-                <span className="font-bold text-lg gradient-text">BikeCare</span>
+                <span className="font-bold text-lg gradient-text tracking-wide">BikeCare</span>
               </Link>
 
               {/* Desktop Links */}

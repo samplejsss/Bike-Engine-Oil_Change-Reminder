@@ -12,6 +12,7 @@ import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Bike, Mail, Lock, Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 
@@ -102,10 +103,10 @@ export default function LoginPage() {
             className="flex flex-col items-center mb-8"
           >
             <div className="relative mb-4">
-              <div className="w-16 h-16 rounded-2xl btn-glow flex items-center justify-center">
-                <Bike size={32} className="text-white" />
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden border border-white/10 shadow-[0_0_25px_rgba(168,85,247,0.4)]">
+                <Image src="/logo.png" alt="BikeCare Logo" width={80} height={80} className="object-cover" />
               </div>
-              <div className="absolute inset-0 rounded-2xl bg-purple-500/30 blur-xl" />
+              <div className="absolute inset-0 rounded-2xl bg-purple-500/30 blur-xl group-hover:blur-2xl transition-all -z-10" />
             </div>
             <h1 className="text-2xl font-bold text-white">BikeCare Tracker</h1>
             <p className="text-slate-400 text-sm mt-1">
