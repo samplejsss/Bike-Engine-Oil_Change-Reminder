@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/hooks/useAuth";
+import { useActiveBike } from "@/hooks/useActiveBike";
 
 const features = [
   { icon: Gauge,       title: "Live KM Tracking",     desc: "Log every ride and watch your total km grow in real time with beautiful progress visuals.",           color: "purple" },
@@ -62,6 +64,8 @@ const inView = (delay = 0) => ({
 
 export default function LandingPage() {
   const [particles, setParticles] = useState([]);
+  const { user } = useAuth();
+  const { activeBike } = useActiveBike();
 
   useEffect(() => {
     setParticles(Array.from({ length: 40 }, (_, i) => ({
@@ -70,6 +74,24 @@ export default function LandingPage() {
       delay: Math.random() * 5, dur: 3 + Math.random() * 3,
     })));
   }, []);
+
+  const isRealData = user && activeBike;
+  const bikeName = isRealData ? `${activeBike.make || "My"} ${activeBike.model || "Bike"}` : "Royal Enfield 350";
+  const updatedText = isRealData ? "Your active bike" : "Updated just now";
+  
+  const currentOdo = isRealData ? (activeBike.currentOdometer || activeBike.purchaseKm || 0) : 12450;
+  const lastChange = isRealData ? (activeBike.lastOilChangeKm || activeBike.purchaseKm || 0) : 11000;
+  const interval = isRealData ? (activeBike.oilChangeInterval || 2000) : 2000;
+  
+  const oilUsedNum = currentOdo - lastChange;
+  const oilRemainingNum = Math.max(0, interval - oilUsedNum);
+  const oilPercentNum = Math.min(100, Math.max(0, (oilUsedNum / interval) * 100));
+
+  const totalKmStr = currentOdo.toLocaleString();
+  const oilUsedPercentStr = `${Math.round(oilPercentNum)}%`;
+  const oilRemainingStr = `${oilRemainingNum.toLocaleString()} km`;
+  const progressWidthStr = `${oilPercentNum}%`;
+  const oilUsedStr = `${oilUsedNum.toLocaleString()} / ${interval.toLocaleString()} km`;
 
   return (
     <>
@@ -154,8 +176,8 @@ export default function LandingPage() {
                         <Image src="/logo.png" alt="BikeCare" width={40} height={40} className="object-cover" loading="eager" />
                       </div>
                       <div>
-                        <p className="text-white font-bold text-sm">Royal Enfield 350</p>
-                        <p className="text-slate-500 text-xs">Updated just now</p>
+                        <p className="text-white font-bold text-sm">{bikeName}</p>
+                        <p className="text-slate-500 text-xs">{updatedText}</p>
                       </div>
                     </div>
                     <span className="flex items-center gap-1.5 text-xs font-semibold text-green-400 glass px-3 py-1.5 rounded-full border border-green-500/25">
@@ -165,9 +187,9 @@ export default function LandingPage() {
                   {/* Stats */}
                   <div className="grid grid-cols-3 gap-3 mb-5">
                     {[
-                      { label: "Total KM",    val: "12,450", color: "text-purple-400" },
-                      { label: "Oil Used",    val: "73%",    color: "text-amber-400"  },
-                      { label: "Next Change", val: "540 km", color: "text-green-400"  },
+                      { label: "Total KM",    val: totalKmStr, color: "text-purple-400" },
+                      { label: "Oil Used",    val: oilUsedPercentStr,    color: "text-amber-400"  },
+                      { label: "Next Change", val: oilRemainingStr, color: "text-green-400"  },
                     ].map((s, i) => (
                       <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.1 }}
                         className="glass rounded-xl p-3 border border-white/5 text-center">
@@ -183,10 +205,10 @@ export default function LandingPage() {
                         <Droplets size={14} className="text-purple-400" />
                         <span className="text-sm text-slate-300 font-semibold">Oil Change Progress</span>
                       </div>
-                      <span className="text-xs text-slate-500">1,460 / 2,000 km</span>
+                      <span className="text-xs text-slate-500">{oilUsedStr}</span>
                     </div>
                     <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                      <motion.div initial={{ width: 0 }} animate={{ width: "73%" }} transition={{ duration: 2, delay: 0.8, ease: "easeOut" }}
+                      <motion.div initial={{ width: 0 }} animate={{ width: progressWidthStr }} transition={{ duration: 2, delay: 0.8, ease: "easeOut" }}
                         className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" />
                     </div>
                   </div>
