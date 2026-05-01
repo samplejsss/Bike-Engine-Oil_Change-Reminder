@@ -16,7 +16,7 @@ const CATEGORIES = ["Fuel", "Service", "Parts", "Insurance", "Parking", "Other"]
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth();
-  const { bikes, activeBikeId, selectBike } = useActiveBike();
+  const { bikes, activeBikeId, selectBike, loading: bikeLoading } = useActiveBike();
   const router = useRouter();
   
   const [saving, setSaving] = useState(false);
