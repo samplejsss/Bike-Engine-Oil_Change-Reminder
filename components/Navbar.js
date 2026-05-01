@@ -7,7 +7,7 @@ import { auth } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useActiveBike } from "@/hooks/useActiveBike";
 import { Bike, LayoutDashboard, History as HistoryIcon, LogOut, LogIn, Menu, X, TrendingUp, Settings, Sparkles, Fuel, FileText, Wallet } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function Navbar() {
@@ -16,6 +16,27 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showBottomNav, setShowBottomNav] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (typeof window !== "undefined") {
+        const currentScrollY = window.scrollY;
+        if (currentScrollY > lastScrollY && currentScrollY > 60) {
+          // scrolling down
+          setShowBottomNav(false);
+        } else {
+          // scrolling up
+          setShowBottomNav(true);
+        }
+        setLastScrollY(currentScrollY);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -42,106 +63,101 @@ export default function Navbar() {
       <motion.nav
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="fixed top-0 left-0 right-0 z-50 pointer-events-none"
+        transition={{ duration: 0.6, ease: "easeOut", type: "spring", bounce: 0.3 }}
+        className="fixed top-4 left-0 right-0 z-50 pointer-events-none flex justify-center px-4"
       >
-        <div className="glass border-b border-white/5 backdrop-blur-2xl pointer-events-auto">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              {/* Logo */}
-              <Link href="/" className="flex items-center gap-2 group">
-                <div className="relative">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden border border-white/10 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
-                    <Image src="/logo.png" alt="BikeCare Logo" width={36} height={36} className="object-cover" />
-                  </div>
-                  <div className="absolute inset-0 rounded-xl bg-purple-500/30 blur-md group-hover:blur-lg transition-all" />
+        <div className="glass rounded-[2rem] overflow-hidden border border-white/10 bg-[#0a0a14]/80 backdrop-blur-3xl pointer-events-auto shadow-[0_20px_40px_rgba(0,0,0,0.5)] w-full max-w-6xl px-3 py-1.5 transition-all">
+          <div className="flex items-center justify-between h-14">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-3 group px-2">
+              <div className="relative">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden border border-white/10 shadow-[0_0_15px_rgba(6,182,212,0.4)] bg-gradient-to-br from-slate-800 to-slate-900 group-hover:scale-105 transition-transform duration-300">
+                  <Image src="/logo.png" alt="BikeCare Logo" width={38} height={38} className="object-cover" />
                 </div>
-                <span className="font-bold text-lg gradient-text tracking-wide">BikeCare</span>
-              </Link>
-
-              {/* Desktop Links */}
-              <div className="hidden lg:flex flex-1 items-center gap-1 overflow-x-auto no-scrollbar px-2 mx-4">
-                {navLinks.map(({ href, label, icon: Icon }) => {
-                  const isActive = pathname === href;
-                  return (
-                    <Link
-                      key={href}
-                      href={href}
-                      className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex-shrink-0 group ${
-                        isActive
-                          ? "text-purple-300"
-                          : "text-slate-400 hover:text-white"
-                      }`}
-                    >
-                      {isActive && (
-                        <motion.div
-                          layoutId="desktopNavIndicator"
-                          className="absolute inset-0 bg-purple-500/20 border border-purple-500/30 rounded-xl"
-                          initial={false}
-                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        />
-                      )}
-                      <div className="relative z-10 flex items-center gap-2">
-                        <Icon size={16} className={isActive ? "text-purple-400" : "text-slate-500 group-hover:text-purple-400 transition-colors"} />
-                        {label}
-                      </div>
-                    </Link>
-                  );
-                })}
+                <div className="absolute inset-0 rounded-2xl bg-cyan-500/30 blur-md group-hover:blur-lg transition-all" />
               </div>
+              <span className="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 group-hover:from-cyan-400 group-hover:to-blue-400 transition-all duration-300">BikeCare</span>
+            </Link>
 
-              {user && bikes?.length > 0 && (
-                <div className="hidden lg:flex items-center">
-                  <select
-                    value={activeBikeId || ""}
-                    onChange={(e) => selectBike(e.target.value)}
-                    className="glass-input !h-10 !py-0 text-sm min-w-44 bg-slate-900 border-white/10"
+            {/* Desktop Links */}
+            <div className="hidden lg:flex flex-1 items-center justify-center gap-1.5 px-4 mx-4 border-x border-white/5">
+              {navLinks.map(({ href, label, icon: Icon }) => {
+                const isActive = pathname === href;
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`relative flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-300 flex-shrink-0 group ${
+                      isActive
+                        ? "text-cyan-300"
+                        : "text-slate-400 hover:text-white"
+                    }`}
                   >
-                    {bikes.map((bike) => (
-                      <option key={bike.id} value={bike.id}>
-                        {bike.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    {isActive && (
+                      <motion.div
+                        layoutId="desktopNavIndicator"
+                        className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/10 border border-cyan-500/30 rounded-2xl shadow-[inset_0_2px_10px_rgba(6,182,212,0.2)]"
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                    <div className="relative z-10 flex items-center gap-2">
+                      <Icon size={18} strokeWidth={isActive ? 2.5 : 2} className={isActive ? "text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" : "text-slate-500 group-hover:text-slate-300 transition-colors"} />
+                      {label}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="hidden lg:flex items-center justify-end gap-3 px-2">
+              {user && bikes?.length > 0 && (
+                <select
+                  value={activeBikeId || ""}
+                  onChange={(e) => selectBike(e.target.value)}
+                  className="glass-input !h-10 !py-0 text-sm min-w-40 bg-slate-900 border-white/10 !rounded-xl font-medium focus:border-cyan-500/50"
+                >
+                  {bikes.map((bike) => (
+                    <option key={bike.id} value={bike.id}>
+                      {bike.name}
+                    </option>
+                  ))}
+                </select>
               )}
 
               {/* Auth Buttons (Desktop) */}
-              <div className="hidden lg:flex items-center gap-3 ml-4">
-                {user ? (
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold shadow-lg">
-                      {user.email?.[0]?.toUpperCase()}
-                    </div>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-300"
-                    >
-                      <LogOut size={15} /> Logout
-                    </button>
+              {user ? (
+                <div className="flex items-center gap-3 ml-2 pl-3 border-l border-white/5">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-sm font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)] text-white border border-white/20">
+                    {user.email?.[0]?.toUpperCase()}
                   </div>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium btn-glow text-white"
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-300 group"
                   >
-                    <LogIn size={15} /> Login
-                  </Link>
-                )}
-              </div>
-
-              {/* Mobile menu toggle */}
-              <button
-                className="lg:hidden text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all ml-auto"
-                onClick={() => setMobileOpen(!mobileOpen)}
-                aria-label="Toggle menu"
-              >
-                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
+                    <LogOut size={16} className="group-hover:drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]" /> Logout
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold btn-glow text-white tracking-wide"
+                >
+                  <LogIn size={16} /> Login
+                </Link>
+              )}
             </div>
+
+            {/* Mobile menu toggle */}
+            <button
+              className="lg:hidden text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all ml-auto"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
 
-          {/* ✅ FIXED: Mobile hamburger menu now shows all nav links */}
           <AnimatePresence>
             {mobileOpen && (
               <motion.div
@@ -149,7 +165,7 @@ export default function Navbar() {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.25 }}
-                className="lg:hidden border-t border-white/5 px-4 py-4 glass overflow-hidden max-h-[80vh] overflow-y-auto no-scrollbar"
+                className="lg:hidden border-t border-white/5 px-4 py-4 glass overflow-hidden max-h-[80vh] overflow-y-auto no-scrollbar shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
               >
                 {user && bikes?.length > 0 && (
                   <div className="mb-4">
@@ -178,11 +194,11 @@ export default function Navbar() {
                         onClick={() => setMobileOpen(false)}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                           pathname === href
-                            ? "bg-purple-500/20 text-purple-300 border border-purple-500/20"
+                            ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/20 shadow-[inset_0_2px_10px_rgba(6,182,212,0.1)]"
                             : "text-slate-400 hover:text-white hover:bg-white/5"
                         }`}
                       >
-                        <Icon size={18} className={pathname === href ? "text-purple-400" : ""} />
+                        <Icon size={18} className={pathname === href ? "text-cyan-400" : ""} />
                         {label}
                       </Link>
                     ))}
@@ -193,13 +209,13 @@ export default function Navbar() {
                   {user ? (
                     <>
                       <div className="flex items-center gap-3 px-4 py-2 mb-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-xs font-bold text-white shadow-lg">
                           {user.email?.[0]?.toUpperCase()}
                         </div>
                         <span className="text-slate-300 text-sm truncate font-medium">{user.email}</span>
                       </div>
                       <button
-                        onClick={() => { handleLogout(); setMobileOpen(false); }}
+                         onClick={() => { handleLogout(); setMobileOpen(false); }}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/10 transition-all font-medium"
                       >
                         <LogOut size={18} /> Logout
@@ -209,7 +225,7 @@ export default function Navbar() {
                     <Link
                       href="/login"
                       onClick={() => setMobileOpen(false)}
-                      className="flex items-center justify-center gap-3 w-full py-3 rounded-xl text-sm btn-glow text-white font-medium"
+                      className="flex items-center justify-center gap-3 w-full py-3 rounded-xl text-sm btn-glow text-white font-medium mt-2"
                     >
                       <LogIn size={18} /> Login
                     </Link>
@@ -221,14 +237,14 @@ export default function Navbar() {
         </div>
       </motion.nav>
 
-      {/* Modern Bottom Navbar (Mobile Only) */}
+      {/* Modern Auto-Hiding Bottom Navbar (Mobile Only) */}
       {user && (
         <div className="lg:hidden fixed bottom-6 left-0 right-0 z-50 pointer-events-none flex justify-center px-4 w-full">
           <motion.div
             initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, type: "spring", bounce: 0.4 }}
-            className="glass rounded-[24px] flex items-center overflow-x-auto no-scrollbar px-2 py-2 shadow-2xl border border-white/10 bg-black/40 backdrop-blur-3xl pointer-events-auto snap-x w-full max-w-full"
+            animate={{ y: showBottomNav ? 0 : 150, opacity: showBottomNav ? 1 : 0, scale: showBottomNav ? 1 : 0.9 }}
+            transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
+            className="glass rounded-[2rem] flex items-center overflow-x-auto no-scrollbar px-2 py-2.5 shadow-[0_20px_40px_rgba(0,0,0,0.6)] border border-white/10 bg-[#0a0a14]/80 backdrop-blur-3xl pointer-events-auto snap-x w-full max-w-full"
           >
             {navLinks.map(({ href, label, icon: Icon }) => {
               const isActive = pathname === href;
@@ -236,20 +252,20 @@ export default function Navbar() {
                 <Link
                   key={href}
                   href={href}
-                  className="flex-none min-w-[72px] snap-center flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300 relative group"
+                  className="flex-none min-w-[76px] snap-center flex flex-col items-center gap-1.5 p-2 rounded-2xl transition-all duration-300 relative group"
                 >
                   {isActive && (
                     <motion.div
                       layoutId="bottomNavIndicator"
-                      className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 to-blue-500/20 rounded-[20px] border border-white/5"
+                      className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-purple-500/20 rounded-[1.25rem] border border-white/10 shadow-[inset_0_2px_10px_rgba(6,182,212,0.15)]"
                       initial={false}
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}
-                  <div className={`relative z-10 p-1 rounded-xl transition-all duration-300 ${isActive ? "text-purple-300 transform scale-110" : "text-slate-400 group-hover:text-white group-hover:scale-105"}`}>
-                    <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                  <div className={`relative z-10 p-1 rounded-xl transition-all duration-300 ${isActive ? "text-cyan-400 transform scale-110 -translate-y-0.5" : "text-slate-400 group-hover:text-white group-hover:scale-105"}`}>
+                    <Icon size={22} strokeWidth={isActive ? 2.5 : 2} className={isActive ? "drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]" : ""} />
                   </div>
-                  <span className={`text-[10px] font-semibold tracking-wide relative z-10 transition-colors duration-300 ${isActive ? "text-purple-300" : "text-slate-500"}`}>
+                  <span className={`text-[10px] font-bold tracking-wide relative z-10 transition-colors duration-300 ${isActive ? "text-cyan-300" : "text-slate-500"}`}>
                     {label}
                   </span>
                 </Link>

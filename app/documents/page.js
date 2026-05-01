@@ -367,16 +367,21 @@ export default function DocumentsPage() {
                 </button>
               </div>
               <div className="bg-black/60 p-3 h-[75vh] relative flex flex-col items-center justify-center rounded-b-2xl">
-                {(viewerDoc.fileName?.toLowerCase().endsWith('.pdf') || viewerDoc.fileUrl?.toLowerCase().includes('.pdf')) ? (
-                  <object data={viewerDoc.fileUrl} type="application/pdf" className="w-full h-full rounded-lg bg-white relative z-10">
+                {(viewerDoc.fileName?.toLowerCase().endsWith('.pdf') || viewerDoc.fileUrl?.toLowerCase().includes('.pdf') || viewerDoc.fileUrl?.toLowerCase().includes('%2fpdf')) ? (
+                  <iframe 
+                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(viewerDoc.fileUrl)}&embedded=true`} 
+                    className="w-full h-full rounded-lg bg-white relative z-10"
+                    frameBorder="0"
+                    title={viewerDoc.fileName}
+                  >
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-0 bg-slate-900 rounded-lg">
                       <FileText size={48} className="text-slate-400 mb-4" />
-                      <p className="text-slate-300 mb-4 font-medium">Your browser blocked the inline PDF preview.</p>
+                      <p className="text-slate-300 mb-4 font-medium">Unable to load PDF preview.</p>
                       <a href={viewerDoc.fileUrl} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 rounded-xl btn-glow text-white font-semibold">
                         Download PDF
                       </a>
                     </div>
-                  </object>
+                  </iframe>
                 ) : (
                   <img src={viewerDoc.fileUrl} alt={viewerDoc.fileName} className="w-full h-full object-contain rounded-lg" />
                 )}
