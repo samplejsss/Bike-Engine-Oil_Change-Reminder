@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Plus, Filter, Calendar, TrendingUp, IndianRupee, Image as ImageIcon, X, Trash2, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
+import PdfViewer from "@/components/PdfViewer";
 
 const CATEGORIES = ["Fuel", "Service", "Parts", "Insurance", "Parking", "Other"];
 
@@ -470,19 +471,7 @@ export default function ExpensesPage() {
               </div>
               <div className="bg-black/60 p-3 h-[75vh] flex items-center justify-center relative">
                 {(viewerUrl.toLowerCase().includes('.pdf') || viewerUrl.toLowerCase().includes('%2fpdf')) ? (
-                  <iframe 
-                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(viewerUrl)}&embedded=true`} 
-                    className="w-full h-full rounded-lg bg-white relative z-10"
-                    frameBorder="0"
-                    title="Receipt PDF Preview"
-                  >
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-0 bg-slate-900 rounded-lg">
-                      <p className="text-slate-300 mb-4 font-medium">Unable to load PDF preview.</p>
-                      <a href={viewerUrl} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 rounded-xl btn-glow text-white font-semibold">
-                        Download Receipt
-                      </a>
-                    </div>
-                  </iframe>
+                  <PdfViewer url={viewerUrl} />
                 ) : (
                   <img src={viewerUrl} alt="Receipt" className="w-full h-full object-contain rounded-lg" />
                 )}

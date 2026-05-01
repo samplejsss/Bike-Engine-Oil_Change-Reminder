@@ -22,6 +22,7 @@ import { DOCUMENT_TYPES, getDocumentStatus, statusBadgeClasses } from "@/lib/doc
 import { Eye, FileText, Loader2, UploadCloud, X, Trash2 } from "lucide-react";
 import PageLoader from "@/components/PageLoader";
 import toast from "react-hot-toast";
+import PdfViewer from "@/components/PdfViewer";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // Free-tier friendly limit: 5MB
 
@@ -368,20 +369,7 @@ export default function DocumentsPage() {
               </div>
               <div className="bg-black/60 p-3 h-[75vh] relative flex flex-col items-center justify-center rounded-b-2xl">
                 {(viewerDoc.fileName?.toLowerCase().endsWith('.pdf') || viewerDoc.fileUrl?.toLowerCase().includes('.pdf') || viewerDoc.fileUrl?.toLowerCase().includes('%2fpdf')) ? (
-                  <iframe 
-                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(viewerDoc.fileUrl)}&embedded=true`} 
-                    className="w-full h-full rounded-lg bg-white relative z-10"
-                    frameBorder="0"
-                    title={viewerDoc.fileName}
-                  >
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-0 bg-slate-900 rounded-lg">
-                      <FileText size={48} className="text-slate-400 mb-4" />
-                      <p className="text-slate-300 mb-4 font-medium">Unable to load PDF preview.</p>
-                      <a href={viewerDoc.fileUrl} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 rounded-xl btn-glow text-white font-semibold">
-                        Download PDF
-                      </a>
-                    </div>
-                  </iframe>
+                  <PdfViewer url={viewerDoc.fileUrl} />
                 ) : (
                   <img src={viewerDoc.fileUrl} alt={viewerDoc.fileName} className="w-full h-full object-contain rounded-lg" />
                 )}
