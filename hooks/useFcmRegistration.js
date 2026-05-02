@@ -3,9 +3,7 @@ import { useEffect, useRef } from "react";
 import { arrayUnion, doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
-import toast from "react-hot-toast";
 
-// Convert a Base64 URL-safe string → Uint8Array (needed for applicationServerKey)
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -22,8 +20,6 @@ export default function useFcmRegistration() {
 
   useEffect(() => {
     if (!user || attempted.current) return;
-
-    // Must be in a browser that supports service workers + push
     if (typeof window === "undefined") return;
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
 
@@ -35,13 +31,13 @@ export default function useFcmRegistration() {
         const registration = await navigator.serviceWorker.register("/sw.js");
         await navigator.serviceWorker.ready;
 
-        // 2. Check / request notification permission
+        // 2. Request notification permission
         let permission = Notification.permission;
         if (permission === "default") {
           permission = await Notification.requestPermission();
         }
         if (permission !== "granted") {
-          console.info("[push] Notification permission not granted:", permission);
+          console.info("[push] Permission not granted:", permission);
           return;
         }
 
@@ -52,30 +48,37 @@ export default function useFcmRegistration() {
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
           });
-          console.info("[push] New push subscription created.");
+          console.info("[push] New subscription created.");
         } else {
-          console.info("[push] Existing push subscription found.");
+          console.info("[push] Existing subscription found.");
         }
 
-        // 4. Save subscription string to Firestore
         const subJSON = JSON.stringify(subscription.toJSON());
+
+        // 4a. Save to users/{uid} (for backward compat)
         await setDoc(
           doc(db, "users", user.uid),
+          { webPushSubscriptions: arrayUnion(subJSON), notificationsEnabled: true },
+          { merge: true }
+        );
+
+        // 4b. Save to push_subscriptions/{uid} (public-readable, for cron without Admin SDK)
+        await setDoc(
+          doc(db, "push_subscriptions", user.uid),
           {
             webPushSubscriptions: arrayUnion(subJSON),
             notificationsEnabled: true,
+            updatedAt: new Date().toISOString(),
           },
           { merge: true }
         );
 
         console.info("[push] Subscription saved to Firestore ✅");
       } catch (err) {
-        // Don't spam user — just log silently
         console.warn("[push] Setup failed:", err?.message || err);
       }
     };
 
-    // Small delay to avoid slowing initial page paint
     const timer = setTimeout(setup, 1500);
     return () => clearTimeout(timer);
   }, [user]);
