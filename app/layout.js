@@ -8,20 +8,23 @@ import { Toaster } from "react-hot-toast";
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400","500","600","700"] });
 
 const SITE_URL = "https://myvehiclecares.vercel.app";
-const SITE_NAME = "BikeCare Tracker";
+const SITE_NAME = "MyVehicleCares";
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
 
   title: {
-    default: "BikeCare Tracker — Smart Motorcycle Maintenance & Oil Change Reminder",
-    template: "%s | BikeCare Tracker",
+    default: "MyVehicleCares — Smart Motorcycle Maintenance & Oil Change Reminder",
+    template: "%s | MyVehicleCares",
   },
 
   description:
-    "BikeCare Tracker is the #1 free motorcycle maintenance app. Track daily km, get oil change reminders, log fuel, manage expenses, and get AI-powered bike advice. Never miss a service again.",
+    "MyVehicleCares is the #1 free motorcycle maintenance app. Track daily km, get oil change reminders, log fuel, manage expenses, and get AI-powered bike advice. Never miss a service again.",
 
   keywords: [
+    "MyVehicleCares",
+    "my vehicle care",
+    "myvehiclecares.vercel.app",
     "bike oil change reminder",
     "motorcycle maintenance tracker",
     "bike km tracker",
@@ -73,7 +76,7 @@ export const metadata = {
     locale: "en_IN",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: "BikeCare Tracker — Smart Motorcycle Maintenance App",
+    title: "MyVehicleCares — Smart Motorcycle Maintenance App",
     description:
       "Track your daily rides, get oil change alerts, log fuel, and manage your bike expenses — all in one beautiful free app. Built for Indian riders.",
     images: [
@@ -81,7 +84,7 @@ export const metadata = {
         url: `${SITE_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "BikeCare Tracker — Smart Motorcycle Maintenance App",
+        alt: "MyVehicleCares — Smart Motorcycle Maintenance App",
         type: "image/png",
       },
     ],
@@ -91,7 +94,7 @@ export const metadata = {
     card: "summary_large_image",
     site: "@shanibck",
     creator: "@shanibck",
-    title: "BikeCare Tracker — Smart Motorcycle Maintenance App",
+    title: "MyVehicleCares — Smart Motorcycle Maintenance App",
     description:
       "Never miss an oil change. Track rides, fuel, expenses & get AI maintenance advice. Free motorcycle health tracker.",
     images: [`${SITE_URL}/og-image.png`],
@@ -116,8 +119,8 @@ export const metadata = {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
-    "apple-mobile-web-app-title": "BikeCare",
-    "application-name": "BikeCare Tracker",
+    "apple-mobile-web-app-title": "MyVehicleCares",
+    "application-name": "MyVehicleCares",
     "msapplication-TileColor": "#7c3aed",
     "theme-color": "#7c3aed",
     "format-detection": "telephone=no",
@@ -132,7 +135,7 @@ function StructuredData() {
       {
         "@type": "WebApplication",
         "@id": `${SITE_URL}/#webapp`,
-        name: "BikeCare Tracker",
+        name: "MyVehicleCares",
         url: SITE_URL,
         description:
           "Free motorcycle maintenance tracking app. Track daily km, get oil change reminders, log fuel, manage expenses, and get AI-powered bike advice.",
@@ -173,7 +176,7 @@ function StructuredData() {
       {
         "@type": "Organization",
         "@id": `${SITE_URL}/#organization`,
-        name: "BikeCare Tracker",
+        name: "MyVehicleCares",
         url: SITE_URL,
         logo: {
           "@type": "ImageObject",
@@ -198,7 +201,7 @@ function StructuredData() {
         "@type": "WebSite",
         "@id": `${SITE_URL}/#website`,
         url: SITE_URL,
-        name: "BikeCare Tracker",
+        name: "MyVehicleCares",
         description: "Smart motorcycle maintenance and oil change reminder app",
         publisher: { "@id": `${SITE_URL}/#organization` },
         potentialAction: {
@@ -213,10 +216,10 @@ function StructuredData() {
         mainEntity: [
           {
             "@type": "Question",
-            name: "Is BikeCare Tracker free?",
+            name: "Is MyVehicleCares free?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Yes, BikeCare Tracker is completely free to use. No subscription, no credit card required.",
+              text: "Yes, MyVehicleCares is completely free to use. No subscription, no credit card required.",
             },
           },
           {
@@ -232,7 +235,7 @@ function StructuredData() {
             name: "Can I track multiple bikes?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Yes! BikeCare Tracker supports multiple bike profiles. Each bike has its own independent km counter, oil change history, fuel logs, and expenses.",
+              text: "Yes! MyVehicleCares supports multiple bike profiles. Each bike has its own independent km counter, oil change history, fuel logs, and expenses.",
             },
           },
           {
@@ -248,7 +251,7 @@ function StructuredData() {
             name: "Does it work for all bikes?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Yes, BikeCare works with any two-wheeler — Royal Enfield, Honda, Yamaha, Bajaj, KTM, Hero, Suzuki, TVS, and more.",
+              text: "Yes, MyVehicleCares works with any two-wheeler — Royal Enfield, Honda, Yamaha, Bajaj, KTM, Hero, Suzuki, TVS, and more.",
             },
           },
         ],

@@ -32,7 +32,7 @@ const stats = [
 ];
 
 const testimonials = [
-  { name: "Rahul M.",  bike: "Royal Enfield 350", text: "Never forgot an oil change since I started using BikeCare. The AI advisor is genuinely useful!", avatar: "R", color: "from-purple-500 to-blue-500" },
+  { name: "Rahul M.",  bike: "Royal Enfield 350", text: "Never forgot an oil change since I started using MyVehicleCares. The AI advisor is genuinely useful!", avatar: "R", color: "from-purple-500 to-blue-500" },
   { name: "Priya S.",  bike: "Honda Activa 6G",   text: "Love the fuel tracking. Finally know my actual mileage and where my money is going.",            avatar: "P", color: "from-pink-500 to-rose-500"   },
   { name: "Kiran V.",  bike: "KTM Duke 390",      text: "Dashboard is beautiful. Feels premium — can't believe it's free. Highly recommend to all riders!", avatar: "K", color: "from-cyan-500 to-blue-600"   },
 ];
@@ -199,7 +199,7 @@ export default function LandingPage() {
 
                 <motion.h1 {...fadeUp(0.08)}
                   className="text-5xl sm:text-6xl lg:text-[4.5rem] font-black leading-[1.05] mb-6">
-                  Your Bike&apos;s
+                  MyVehicleCares
                   <br />
                   <span className="gradient-text">Health Command</span>
                   <br />
@@ -249,7 +249,7 @@ export default function LandingPage() {
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 shadow-[0_0_12px_rgba(168,85,247,0.4)]">
-                        <Image src="/logo.png" alt="BikeCare" width={40} height={40} className="object-cover" loading="eager" />
+                        <Image src="/logo.png" alt="MyVehicleCares" width={40} height={40} className="object-cover" loading="eager" />
                       </div>
                       <div>
                         <p className="text-white font-bold text-sm">{bikeName}</p>
@@ -439,9 +439,9 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl overflow-hidden border border-white/10 shadow-[0_0_12px_rgba(168,85,247,0.3)]">
-                  <Image src="/logo.png" alt="BikeCare" width={32} height={32} className="object-cover" />
+                  <Image src="/logo.png" alt="MyVehicleCares" width={32} height={32} className="object-cover" />
                 </div>
-                <span className="font-bold text-white tracking-wide">BikeCare Tracker</span>
+                <span className="font-bold text-white tracking-wide">MyVehicleCares (BikeCare)</span>
               </div>
 
               {/* Developer credit */}
