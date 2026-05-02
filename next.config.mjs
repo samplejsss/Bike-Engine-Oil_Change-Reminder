@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['web-push', 'firebase-admin'],
+  serverExternalPackages: ['web-push'],
 };
 
 export default nextConfig;
