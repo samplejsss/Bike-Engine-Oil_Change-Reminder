@@ -23,7 +23,12 @@ import { DOCUMENT_TYPES, getDocumentStatus, statusBadgeClasses } from "@/lib/doc
 import { Eye, FileText, Loader2, UploadCloud, X, Trash2 } from "lucide-react";
 import PageLoader from "@/components/PageLoader";
 import toast from "react-hot-toast";
-import PdfViewer from "@/components/PdfViewer";
+import dynamic from 'next/dynamic';
+
+const PdfViewer = dynamic(() => import("@/components/PdfViewer"), {
+  ssr: false,
+  loading: () => <div className="text-white text-sm">Loading PDF Viewer...</div>
+});
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // Free-tier friendly limit: 5MB
 

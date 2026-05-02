@@ -10,7 +10,12 @@ import Navbar from "@/components/Navbar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Plus, Filter, Calendar, TrendingUp, IndianRupee, Image as ImageIcon, X, Trash2, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
-import PdfViewer from "@/components/PdfViewer";
+import dynamic from 'next/dynamic';
+
+const PdfViewer = dynamic(() => import("@/components/PdfViewer"), {
+  ssr: false,
+  loading: () => <div className="text-white text-sm">Loading PDF Viewer...</div>
+});
 
 const CATEGORIES = ["Fuel", "Service", "Parts", "Insurance", "Parking", "Other"];
 
