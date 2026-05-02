@@ -1,28 +1,36 @@
+export const runtime = 'nodejs';
+
 import { NextResponse } from "next/server";
-import { collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { webpush } from "@/lib/webPush";
+import { getWebPush } from "@/lib/webPush";
 
-// Helper: send web push + store in Firestore in-app notifications
-async function notify(userId, webPushSubscriptions, { title, body, type = "info" }) {
+// Helper: store in Firestore + send Web Push
+// Uses Firebase Admin SDK for server-side Firestore access
+async function notify(adminDb, userId, webPushSubscriptions, { title, body, type = "info" }) {
   // 1. Store in Firestore (in-app notification center)
-  try {
-    await addDoc(collection(db, "users", userId, "notifications"), {
-      title, body, type, read: false, createdAt: serverTimestamp(),
-    });
-  } catch (err) { console.error("Firestore notify error:", err); }
+  if (adminDb) {
+    try {
+      await adminDb.collection("users").doc(userId).collection("notifications").add({
+        title, body, type, read: false, createdAt: new Date(),
+      });
+    } catch (err) { console.error("[cron] Firestore notify error:", err.message); }
+  }
 
-  // 2. Send Web Push to all subscriptions
+  // 2. Send Web Push (only if there are subscriptions)
+  if (!webPushSubscriptions || webPushSubscriptions.length === 0) return;
+
+  let wp;
+  try { wp = getWebPush(); } catch (e) { console.warn("[cron] VAPID not configured:", e.message); return; }
+
   const payload = JSON.stringify({ title, body });
   for (const subStr of webPushSubscriptions) {
     try {
       const sub = JSON.parse(subStr);
-      await webpush.sendNotification(sub, payload);
+      await wp.sendNotification(sub, payload);
     } catch (err) {
       if (err.statusCode === 410 || err.statusCode === 404) {
-        console.warn("Stale push subscription, skipping.");
+        console.warn("[cron] Stale push subscription.");
       } else {
-        console.error("Web Push Send Error:", err);
+        console.error("[cron] sendNotification error:", err.message);
       }
     }
   }
@@ -37,8 +45,21 @@ export async function GET(request) {
     }
   }
 
+  // Use Firebase Admin SDK (works server-side)
+  let adminDb = null;
   try {
-    const usersSnap = await getDocs(collection(db, "users"));
+    const adminModule = await import("@/lib/firebaseAdmin");
+    adminDb = adminModule.adminDb;
+  } catch (e) {
+    console.error("[cron] Failed to load Firebase Admin:", e.message);
+  }
+
+  if (!adminDb) {
+    return NextResponse.json({ error: "Firebase Admin not available. Set FIREBASE_SERVICE_ACCOUNT_KEY." }, { status: 500 });
+  }
+
+  try {
+    const usersSnap = await adminDb.collection("users").get();
     let notificationsSent = 0;
 
     for (const userDoc of usersSnap.docs) {
@@ -48,7 +69,7 @@ export async function GET(request) {
 
       if (userData.notificationsEnabled === false) continue;
 
-      const bikesSnap = await getDocs(collection(db, "users", userId, "bikes"));
+      const bikesSnap = await adminDb.collection("users").doc(userId).collection("bikes").get();
 
       for (const bikeDoc of bikesSnap.docs) {
         const bikeData = bikeDoc.data();
@@ -59,8 +80,8 @@ export async function GET(request) {
         const kmSinceChange = Math.max(0, currentOdometer - lastResetKm);
         const kmRemaining = Math.max(0, oilChangeInterval - kmSinceChange);
 
-        // 1. Daily oil change status notification
-        await notify(userId, webPushSubscriptions, {
+        // 1. Daily oil change status
+        await notify(adminDb, userId, webPushSubscriptions, {
           title: `🛢️ ${bikeName} Daily Oil Status`,
           body: kmRemaining <= 0
             ? `Oil change is OVERDUE! You've ridden ${kmSinceChange.toFixed(0)} km since the last change.`
@@ -69,9 +90,9 @@ export async function GET(request) {
         });
         notificationsSent++;
 
-        // 2. Extra urgent alert if overdue or within 200km
+        // 2. Urgent oil change alert (within 200km)
         if (kmRemaining <= 200 && kmRemaining > 0) {
-          await notify(userId, webPushSubscriptions, {
+          await notify(adminDb, userId, webPushSubscriptions, {
             title: `⚠️ Oil Change Due Soon – ${bikeName}`,
             body: `Only ${kmRemaining.toFixed(0)} km left before your oil change! Book your service now.`,
             type: "alert",
@@ -79,34 +100,31 @@ export async function GET(request) {
           notificationsSent++;
         }
 
-        // 3. Check Maintenance Tasks
-        const tasksSnap = await getDocs(
-          collection(db, "users", userId, "bikes", bikeDoc.id, "maintenanceTasks")
-        );
+        // 3. Maintenance tasks
+        const tasksSnap = await adminDb
+          .collection("users").doc(userId)
+          .collection("bikes").doc(bikeDoc.id)
+          .collection("maintenanceTasks")
+          .get();
 
         for (const taskDoc of tasksSnap.docs) {
-          const taskData = taskDoc.data();
+          const task = taskDoc.data();
           let isDue = false;
           let reason = "";
-          let daysUntilDue = null;
 
-          if (taskData.nextDueKm && currentOdometer >= taskData.nextDueKm) {
+          if (task.nextDueKm && currentOdometer >= task.nextDueKm) {
             isDue = true;
-            reason = `odometer ${currentOdometer} km has reached the due point of ${taskData.nextDueKm} km`;
-          } else if (taskData.nextDueDate) {
-            const nextDate = taskData.nextDueDate.toDate
-              ? taskData.nextDueDate.toDate()
-              : new Date(taskData.nextDueDate);
-            const now = new Date();
-            daysUntilDue = Math.ceil((nextDate - now) / (1000 * 60 * 60 * 24));
+            reason = `odometer ${currentOdometer} km has reached the due point of ${task.nextDueKm} km`;
+          } else if (task.nextDueDate) {
+            const nextDate = task.nextDueDate.toDate ? task.nextDueDate.toDate() : new Date(task.nextDueDate);
+            const daysUntilDue = Math.ceil((nextDate - new Date()) / (1000 * 60 * 60 * 24));
             if (daysUntilDue <= 0) {
               isDue = true;
               reason = `it was due on ${nextDate.toLocaleDateString("en-IN")}`;
             } else if (daysUntilDue <= 3) {
-              // Upcoming in 3 days – send a reminder
-              await notify(userId, webPushSubscriptions, {
-                title: `🔧 "${taskData.taskName}" due in ${daysUntilDue} day(s)`,
-                body: `Upcoming maintenance for ${bikeName}. Schedule it before ${nextDate.toLocaleDateString("en-IN")}.`,
+              await notify(adminDb, userId, webPushSubscriptions, {
+                title: `🔧 "${task.taskName}" due in ${daysUntilDue} day(s)`,
+                body: `Upcoming maintenance for ${bikeName}. Schedule before ${nextDate.toLocaleDateString("en-IN")}.`,
                 type: "maintenance",
               });
               notificationsSent++;
@@ -114,53 +132,54 @@ export async function GET(request) {
           }
 
           if (isDue) {
-            await notify(userId, webPushSubscriptions, {
+            await notify(adminDb, userId, webPushSubscriptions, {
               title: `🔧 ${bikeName} Maintenance Due!`,
-              body: `"${taskData.taskName}" is due – ${reason}. Open BikeCare to log the service.`,
+              body: `"${task.taskName}" is due – ${reason}. Open BikeCare to log the service.`,
               type: "maintenance",
             });
             notificationsSent++;
           }
         }
 
-        // 4. Check Document Expiry (documents sub-collection)
+        // 4. Document expiry checks
         try {
-          const docsSnap = await getDocs(
-            collection(db, "users", userId, "bikes", bikeDoc.id, "documents")
-          );
+          const docsSnap = await adminDb
+            .collection("users").doc(userId)
+            .collection("bikes").doc(bikeDoc.id)
+            .collection("documents")
+            .get();
+
           for (const docSnap of docsSnap.docs) {
-            const docData = docSnap.data();
-            if (!docData.expiryDate) continue;
-            const expiry = docData.expiryDate.toDate
-              ? docData.expiryDate.toDate()
-              : new Date(docData.expiryDate);
+            const d = docSnap.data();
+            if (!d.expiryDate) continue;
+            const expiry = d.expiryDate.toDate ? d.expiryDate.toDate() : new Date(d.expiryDate);
             const daysLeft = Math.ceil((expiry - new Date()) / (1000 * 60 * 60 * 24));
+
             if (daysLeft <= 30 && daysLeft > 0) {
-              await notify(userId, webPushSubscriptions, {
-                title: `📄 ${docData.type || "Document"} Expiring in ${daysLeft} days`,
-                body: `"${docData.fileName}" for ${bikeName} expires on ${expiry.toLocaleDateString("en-IN")}. Renew it now!`,
+              await notify(adminDb, userId, webPushSubscriptions, {
+                title: `📄 ${d.type || "Document"} Expiring in ${daysLeft} days`,
+                body: `"${d.fileName}" for ${bikeName} expires on ${expiry.toLocaleDateString("en-IN")}. Renew it now!`,
                 type: "alert",
               });
               notificationsSent++;
             } else if (daysLeft <= 0) {
-              await notify(userId, webPushSubscriptions, {
-                title: `📄 ${docData.type || "Document"} EXPIRED`,
-                body: `"${docData.fileName}" for ${bikeName} has expired. Please renew immediately!`,
+              await notify(adminDb, userId, webPushSubscriptions, {
+                title: `📄 ${d.type || "Document"} EXPIRED`,
+                body: `"${d.fileName}" for ${bikeName} has expired. Please renew immediately!`,
                 type: "alert",
               });
               notificationsSent++;
             }
           }
         } catch (err) {
-          console.error("Document check error:", err);
+          console.error("[cron] Document check error:", err.message);
         }
       }
     }
 
     return NextResponse.json({ success: true, notificationsSent });
   } catch (error) {
-    console.error("Cron Error:", error);
+    console.error("[cron] Error:", error.message);
     return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
   }
 }
-

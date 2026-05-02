@@ -1,52 +1,72 @@
-self.addEventListener('push', function(event) {
+// BikeCare Tracker — Service Worker
+// Handles Web Push (real OS notifications even when app is closed)
+const APP_URL = self.location.origin;
+
+// ─── Push Event: Triggered by server via web-push library ───────────────────
+self.addEventListener('push', function (event) {
+  console.log('[SW] Push received');
+
+  let title = '🏍️ BikeCare Reminder';
+  let body = 'You have a new update from BikeCare.';
+  let icon = '/icon.png';
+  let badge = '/icon.png';
+  let url = APP_URL + '/dashboard';
+
   if (event.data) {
     try {
       const data = event.data.json();
-      
-      const options = {
-        body: data.body,
-        icon: '/icon.png',
-        badge: '/icon.png',
-        vibrate: [100, 50, 100],
-        data: {
-          dateOfArrival: Date.now(),
-          primaryKey: '2'
-        },
-        actions: [
-          {action: 'explore', title: 'Open App', icon: '/icon.png'},
-          {action: 'close', title: 'Close', icon: '/icon.png'},
-        ]
-      };
-      event.waitUntil(
-        self.registration.showNotification(data.title || 'BikeCare Update', options)
-      );
-    } catch(e) {
-      // Not JSON, just show text
-      event.waitUntil(
-        self.registration.showNotification('BikeCare Update', { body: event.data.text(), icon: '/icon.png' })
-      );
+      if (data.title) title = data.title;
+      if (data.body) body = data.body;
+      if (data.icon) icon = data.icon;
+      if (data.url) url = data.url;
+    } catch (_) {
+      body = event.data.text() || body;
     }
   }
+
+  // showNotification() → REAL OS notification in system notification center
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon,
+      badge,
+      image: icon,
+      vibrate: [200, 100, 200],
+      tag: 'bikecare-' + Date.now(), // Unique tag so each notification stacks
+      requireInteraction: false,     // Auto-dismiss after OS timeout
+      silent: false,                 // Play notification sound
+      data: { url },
+    })
+  );
 });
 
-self.addEventListener('notificationclick', function(event) {
+// ─── Notification Click: Opens the app ───────────────────────────────────────
+self.addEventListener('notificationclick', function (event) {
   event.notification.close();
-  if (event.action !== 'close') {
-    event.waitUntil(
-      clients.matchAll({ type: 'window' }).then( windowClients => {
-        // Check if there is already a window/tab open with the target URL
-        for (var i = 0; i < windowClients.length; i++) {
-          var client = windowClients[i];
-          // If so, just focus it.
-          if (client.url === '/' && 'focus' in client) {
-            return client.focus();
-          }
+
+  const targetUrl = event.notification.data?.url || APP_URL + '/dashboard';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // If app tab is already open, focus it
+      for (const client of windowClients) {
+        if (client.url.startsWith(APP_URL) && 'focus' in client) {
+          return client.focus();
         }
-        // If not, then open the target URL in a new window/tab.
-        if (clients.openWindow) {
-          return clients.openWindow('/');
-        }
-      })
-    );
-  }
+      }
+      // Otherwise open new tab
+      return clients.openWindow(targetUrl);
+    })
+  );
+});
+
+// ─── Activate: Take control immediately ──────────────────────────────────────
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activated');
+  event.waitUntil(clients.claim());
+});
+
+self.addEventListener('install', (event) => {
+  console.log('[SW] Installed');
+  self.skipWaiting();
 });

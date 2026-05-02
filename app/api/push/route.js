@@ -1,44 +1,39 @@
+export const runtime = 'nodejs';
+
 import { NextResponse } from "next/server";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { webpush } from "@/lib/webPush";
+import { getWebPush } from "@/lib/webPush";
 
 export async function POST(request) {
   try {
-    const { userId, title, body } = await request.json();
+    const { subscription, title, body } = await request.json();
 
-    if (!userId || !title || !body) {
-      return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+    if (!subscription || !title) {
+      return NextResponse.json({ error: "Missing subscription or title" }, { status: 400 });
     }
 
-    const userDoc = await getDoc(doc(db, "users", userId));
-    if (!userDoc.exists()) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    let wp;
+    try {
+      wp = getWebPush();
+    } catch (err) {
+      console.error("[push] VAPID init failed:", err.message);
+      return NextResponse.json({ error: "VAPID keys not configured", details: err.message }, { status: 500 });
     }
 
-    const userData = userDoc.data();
-    const webPushSubscriptions = userData.webPushSubscriptions || [];
+    const payload = JSON.stringify({ title, body: body || "" });
 
-    if (webPushSubscriptions.length === 0 || userData.notificationsEnabled === false) {
-      return NextResponse.json({ success: true, message: "Notifications disabled or no subscriptions" });
-    }
-
-    const payload = JSON.stringify({ title, body });
-    let sentCount = 0;
-
-    for (const subStr of webPushSubscriptions) {
-      try {
-        const sub = JSON.parse(subStr);
-        await webpush.sendNotification(sub, payload);
-        sentCount++;
-      } catch (err) {
-        console.error("Web Push Send Error:", err);
+    try {
+      await wp.sendNotification(subscription, payload);
+      return NextResponse.json({ success: true });
+    } catch (err) {
+      const code = err.statusCode;
+      if (code === 410 || code === 404) {
+        return NextResponse.json({ success: false, message: "Subscription expired" }, { status: 410 });
       }
+      console.error("[push] sendNotification error:", err.message);
+      return NextResponse.json({ error: "Send failed", details: err.message }, { status: 500 });
     }
-
-    return NextResponse.json({ success: true, sentCount });
   } catch (error) {
-    console.error("Push API Error:", error);
+    console.error("[push] Unexpected error:", error.message);
     return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
   }
 }

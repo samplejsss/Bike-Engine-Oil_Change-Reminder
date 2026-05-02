@@ -361,61 +361,118 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Push Notifications Section */}
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
-                    <Bell size={18} className="text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]" /> Push Notifications
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-slate-900/50 md:w-3/4">
-                      <div>
-                        <p className="text-white font-medium text-sm">Enable Push Notifications</p>
-                        <p className="text-xs text-slate-500 mt-0.5">Get daily oil status, maintenance, and document alerts — even when the app is closed.</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
-                        <input
-                          type="checkbox"
-                          className="sr-only peer"
-                          checked={formData.notificationsEnabled ?? true}
-                          onChange={async (e) => {
-                            setFormData({ ...formData, notificationsEnabled: e.target.checked });
-                            if (e.target.checked) {
-                              if ('serviceWorker' in navigator && 'PushManager' in window) {
-                                const perm = await Notification.requestPermission();
-                                if (perm !== 'granted') {
-                                  toast.error('Allow notifications in your browser settings first.');
-                                  setFormData(prev => ({ ...prev, notificationsEnabled: false }));
-                                } else {
-                                  toast.success('Push notifications enabled! ✅');
-                                }
-                              }
-                            } else {
-                              toast('Push notifications disabled.', { icon: '🔕' });
-                            }
-                          }}
-                        />
-                        <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
-                      </label>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        if (!user) return;
-                        await sendNotification(user.uid, {
-                          title: '🔔 Test Notification',
-                          body: 'BikeCare push notifications are working correctly!',
-                          type: 'info',
-                        });
-                        toast.success('Test notification sent!');
-                      }}
-                      className="px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm font-semibold hover:bg-rose-500/20 transition-all flex items-center gap-2"
-                    >
-                      <Bell size={15} /> Send Test Notification
-                    </button>
-                    <p className="text-xs text-slate-600">
-                      Uses the Web Push standard (100% free — no Firebase Blaze plan needed).
-                    </p>
-                  </div>
-                </div>
+                 <div>
+                   <h3 className="text-lg font-semibold text-white mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
+                     <Bell size={18} className="text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]" /> OS Push Notifications
+                   </h3>
+                   <div className="space-y-4">
+
+                     {/* Status + Toggle */}
+                     <div className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-slate-900/50 md:w-3/4">
+                       <div>
+                         <p className="text-white font-medium text-sm">Enable Push Notifications</p>
+                         <p className="text-xs text-slate-500 mt-0.5">Get oil change, maintenance &amp; document alerts — even when the website is closed.</p>
+                       </div>
+                       <label className="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
+                         <input
+                           type="checkbox"
+                           className="sr-only peer"
+                           checked={formData.notificationsEnabled ?? true}
+                           onChange={async (e) => {
+                             const enabled = e.target.checked;
+                             setFormData({ ...formData, notificationsEnabled: enabled });
+                             if (enabled) {
+                               if (!('Notification' in window)) {
+                                 toast.error('This browser does not support notifications.');
+                                 return;
+                               }
+                               const perm = await Notification.requestPermission();
+                               if (perm === 'granted') {
+                                 toast.success('OS notifications enabled! You will now get alerts. ✅');
+                               } else {
+                                 toast.error('Permission denied. Please allow notifications in browser settings (🔒 in address bar).');
+                                 setFormData(prev => ({ ...prev, notificationsEnabled: false }));
+                               }
+                             } else {
+                               toast('Push notifications disabled.', { icon: '🔕' });
+                             }
+                           }}
+                         />
+                         <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                       </label>
+                     </div>
+
+                     {/* Test OS Notification button */}
+                     <button
+                       type="button"
+                       id="test-os-notification"
+                       onClick={async () => {
+                         if (!('Notification' in window)) {
+                           toast.error('Notifications not supported in this browser.');
+                           return;
+                         }
+                         // Request permission if needed
+                         let perm = Notification.permission;
+                         if (perm === 'default') {
+                           perm = await Notification.requestPermission();
+                         }
+                         if (perm !== 'granted') {
+                           toast.error('Please allow notifications: click the 🔒 lock icon in the address bar → Allow Notifications.');
+                           return;
+                         }
+                         // Show OS notification via service worker (real system notification)
+                         if ('serviceWorker' in navigator) {
+                           const reg = await navigator.serviceWorker.ready;
+                           await reg.showNotification('🏍️ BikeCare Test', {
+                             body: 'OS notification is working! You will get oil change & maintenance alerts automatically.',
+                             icon: '/icon.png',
+                             badge: '/icon.png',
+                             vibrate: [200, 100, 200],
+                             tag: 'bikecare-test-' + Date.now(),
+                             requireInteraction: true,
+                             data: { url: window.location.origin + '/dashboard' },
+                           });
+                           toast.success('✅ Check your system notification area!');
+                           // Also store in Firestore
+                           if (user) {
+                             await sendNotification(user.uid, {
+                               title: '🔔 OS Notification Test',
+                               body: 'Push notifications are working correctly!',
+                               type: 'info',
+                             });
+                           }
+                         } else {
+                           // Fallback: basic Notification API
+                           new Notification('🏍️ BikeCare Test', {
+                             body: 'OS notification working!',
+                             icon: '/icon.png',
+                           });
+                           toast.success('Test notification sent!');
+                         }
+                       }}
+                       className="px-5 py-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-200 text-sm font-semibold hover:bg-rose-500/20 active:scale-95 transition-all flex items-center gap-2 shadow-lg"
+                     >
+                       <Bell size={16} className="text-rose-400" />
+                       🔔 Test OS Notification Now
+                     </button>
+
+                     {/* How it works */}
+                     <div className="p-4 rounded-xl bg-slate-900/40 border border-white/5 space-y-2 md:w-3/4">
+                       <p className="text-xs font-semibold text-slate-300 mb-2">How it works:</p>
+                       <div className="space-y-1.5 text-xs text-slate-500">
+                         <p>✅ <span className="text-slate-400">When browser is running</span> — OS popup appears automatically</p>
+                         <p>✅ <span className="text-slate-400">When app tab is closed</span> — background push via service worker</p>
+                         <p>✅ <span className="text-slate-400">Daily at 9:00 AM</span> — automatic oil change status sent to all users</p>
+                         <p>✅ <span className="text-slate-400">When km is added</span> — instant oil remaining notification</p>
+                         <p>⚠️ <span className="text-slate-400">Requires browser to be running</span> (Chrome/Firefox in background)</p>
+                       </div>
+                     </div>
+
+                     <p className="text-xs text-slate-600">
+                       100% free — uses Web Push API standard, no Firebase Blaze plan required.
+                     </p>
+                   </div>
+                 </div>
 
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
