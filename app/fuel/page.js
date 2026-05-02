@@ -11,6 +11,7 @@ import PageLoader from "@/components/PageLoader";
 import { buildFuelEntriesWithEfficiency } from "@/lib/fuelMetrics";
 import { Droplets, Loader2, Fuel, PlusCircle } from "lucide-react";
 import toast from "react-hot-toast";
+import PageHeader from "@/components/PageHeader";
 
 export default function FuelPage() {
   const { user, loading: authLoading } = useAuth();
@@ -122,18 +123,14 @@ export default function FuelPage() {
       <Navbar />
       <main className="min-h-screen pt-24 pb-16 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
-            <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
-              <Fuel className="text-amber-400" /> Fuel Log
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Add fuel fill-ups and track your per-tank fuel efficiency.
-            </p>
-          </motion.div>
+          <PageHeader 
+            title="Fuel Log"
+            subtitle="Add fuel fill-ups and track your per-tank fuel efficiency."
+            icon={Fuel}
+            badge="Efficiency Tracker"
+            colorClass="text-amber-400"
+            gradientClass="bg-amber-500/20"
+          />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <motion.div

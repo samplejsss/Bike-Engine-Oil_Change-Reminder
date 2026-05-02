@@ -17,6 +17,7 @@ import {
 } from "recharts";
 import { TrendingUp, IndianRupee, MapPin, Image as ImageIcon, FileText, FileSpreadsheet, Activity, Fuel, Tag } from "lucide-react";
 import { format, subDays, isSameDay, startOfMonth, startOfDay } from "date-fns";
+import PageHeader from "@/components/PageHeader";
 
 const EXPENSE_COLORS = {
   Fuel: "#f59e0b",
@@ -236,21 +237,17 @@ export default function AnalyticsPage() {
       <Navbar />
       <main className="min-h-screen pt-24 pb-20 md:pb-6 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8"
-          >
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
-                <TrendingUp className="text-cyan-400" /> Analytics Dashboard
-              </h1>
-              <p className="text-slate-400 text-sm mt-1">
-                Visualize your rides and maintenance costs.
-              </p>
-              
-              <div className="flex bg-slate-800 rounded-lg p-1 mt-4 w-fit border border-white/10">
-                 {['7', '30', 'all'].map(t => (
+          <PageHeader 
+            title="Analytics Dashboard"
+            subtitle="Visualize your rides and maintenance costs."
+            icon={TrendingUp}
+            badge="Insights"
+            colorClass="text-cyan-400"
+            gradientClass="bg-cyan-500/20"
+            rightContent={
+              <div className="flex flex-col sm:flex-row items-end gap-4 mt-2">
+                <div className="flex bg-slate-800 rounded-lg p-1 border border-white/10">
+                  {['7', '30', 'all'].map(t => (
                     <button
                       key={t}
                       onClick={() => setTimeRange(t)}
@@ -258,21 +255,22 @@ export default function AnalyticsPage() {
                     >
                       {t === 'all' ? 'All Time' : `${t} Days`}
                     </button>
-                 ))}
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleDownloadCsv} title="Download CSV" className="p-2.5 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-xl text-white transition-colors">
+                    <FileSpreadsheet size={18} />
+                  </motion.button>
+                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleDownloadImage} title="Download Image" className="p-2.5 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-xl text-white transition-colors">
+                    <ImageIcon size={18} />
+                  </motion.button>
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleDownloadPdf} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-xl text-white text-sm font-medium flex items-center gap-2 transition-colors">
+                    <FileText size={16} /> Export PDF
+                  </motion.button>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleDownloadCsv} title="Download CSV" className="p-2.5 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-xl text-white transition-colors">
-                <FileSpreadsheet size={18} />
-              </motion.button>
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleDownloadImage} title="Download Image" className="p-2.5 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-xl text-white transition-colors">
-                <ImageIcon size={18} />
-              </motion.button>
-              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleDownloadPdf} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-xl text-white text-sm font-medium flex items-center gap-2 transition-colors">
-                <FileText size={16} /> Export PDF
-              </motion.button>
-            </div>
-          </motion.div>
+            }
+          />
 
           {/* Summary Stats Row */}
           <motion.div

@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import ReactMarkdown from "react-markdown";
+import PageHeader from "@/components/PageHeader";
 
 export default function AIAdvisorPage() {
   const { user, loading: authLoading } = useAuth();
@@ -138,12 +139,14 @@ export default function AIAdvisorPage() {
       <main className="min-h-screen pt-24 pb-20 md:pb-6 px-4 sm:px-6 flex flex-col max-w-4xl mx-auto h-screen">
         
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-4 shrink-0 border-b border-white/10 pb-4">
-           <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
-              <Sparkles className="text-purple-400" /> AI Mechanic Advisor
-           </h1>
-           <p className="text-slate-400 text-sm mt-1">Ask questions, request analysis, and get accurate insights.</p>
-        </motion.div>
+        <PageHeader 
+            title="AI Mechanic Advisor"
+            subtitle="Ask questions, request analysis, and get accurate insights based on your data."
+            icon={Sparkles}
+            badge="AI Assistant"
+            colorClass="text-purple-400"
+            gradientClass="bg-purple-500/20"
+        />
 
         {/* Chat Area */}
         <div className="flex-1 overflow-y-auto pr-2 pb-4 space-y-6">

@@ -24,6 +24,7 @@ import { Eye, FileText, Loader2, UploadCloud, X, Trash2 } from "lucide-react";
 import PageLoader from "@/components/PageLoader";
 import toast from "react-hot-toast";
 import dynamic from 'next/dynamic';
+import PageHeader from "@/components/PageHeader";
 
 const PdfViewer = dynamic(() => import("@/components/PdfViewer"), {
   ssr: false,
@@ -201,14 +202,14 @@ export default function DocumentsPage() {
       <Navbar />
       <main className="min-h-screen pt-24 pb-16 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
-              <FileText className="text-cyan-400" /> Document Vault
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Manage RC, Insurance, PUC and other bike documents for {activeBike?.name || "selected bike"}.
-            </p>
-          </motion.div>
+          <PageHeader 
+            title="Document Vault"
+            subtitle={`Manage RC, Insurance, PUC and other bike documents for ${activeBike?.name || "selected bike"}.`}
+            icon={FileText}
+            badge="Secure Vault"
+            colorClass="text-cyan-400"
+            gradientClass="bg-cyan-500/20"
+          />
 
           <motion.form
             onSubmit={submit}

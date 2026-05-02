@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import PageLoader from "@/components/PageLoader";
 import { Bike, Pencil, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
+import PageHeader from "@/components/PageHeader";
 
 const emptyForm = {
   name: "",
@@ -136,12 +137,14 @@ export default function BikesPage() {
       <Navbar />
       <main className="min-h-screen pt-24 pb-16 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-            <h1 className="text-3xl font-bold text-white flex items-center gap-2">
-              <Bike className="text-cyan-400" /> My Bikes
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">Manage multiple bikes and switch instantly.</p>
-          </motion.div>
+          <PageHeader 
+            title="My Bikes"
+            subtitle="Manage multiple bikes and switch instantly."
+            icon={Bike}
+            badge="Garage"
+            colorClass="text-cyan-400"
+            gradientClass="bg-cyan-500/20"
+          />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <motion.form

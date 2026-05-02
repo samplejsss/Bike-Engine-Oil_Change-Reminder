@@ -11,6 +11,7 @@ import PageLoader from "@/components/PageLoader";
 import { Calendar, Clock, Bike, Loader2, Edit2, Trash2, Check, X as XIcon, Download } from "lucide-react";
 import CalendarComponent from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import PageHeader from "@/components/PageHeader";
 
 export default function HistoryPage() {
   const { user, loading: authLoading } = useAuth();
@@ -315,26 +316,16 @@ export default function HistoryPage() {
       <Navbar />
       <main className="min-h-screen pt-24 pb-16 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 flex items-center justify-center border border-cyan-500/20">
-                <Calendar size={24} className="text-cyan-400" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-white">Ride History</h1>
-                <p className="text-slate-400 text-sm mt-1">
-                  Your past trips and daily logging records.
-                </p>
-              </div>
-            </div>
-            {rides.length > 0 && (
-              <div className="flex flex-col items-start sm:items-end gap-3 self-start sm:self-center shrink-0">
+          <PageHeader 
+            title="Ride History"
+            subtitle="Your past trips and daily logging records."
+            icon={Calendar}
+            badge="Activity Log"
+            colorClass="text-cyan-400"
+            gradientClass="bg-cyan-500/15"
+            rightContent={
+              rides.length > 0 && (
+                <div className="flex flex-col items-start sm:items-end gap-3 self-start sm:self-center shrink-0">
                 <div className="flex bg-slate-800 rounded-lg p-1 w-fit border border-white/10">
                   {[
                     { id: "months", label: "Months" },
@@ -396,7 +387,7 @@ export default function HistoryPage() {
                 </div>
               </div>
             )}
-          </motion.div>
+          />
 
           {/* Streak Counter & Calendar Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

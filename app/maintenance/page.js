@@ -23,6 +23,7 @@ import { Bike, CheckCircle2, ClipboardList, Download, Loader2, Plus, Settings2 }
 import toast from "react-hot-toast";
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
+import PageHeader from "@/components/PageHeader";
 
 export default function MaintenancePage() {
   const { user, loading: authLoading } = useAuth();
@@ -349,15 +350,14 @@ export default function MaintenancePage() {
       <Navbar />
       <main className="min-h-screen pt-24 pb-16 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto" ref={pdfRef}>
-          <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
-              <ClipboardList className="text-purple-400" /> Maintenance Schedule
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Track routine tasks for {activeBike?.name || "your bike"} · Current odometer:{" "}
-              <span className="text-white font-mono font-semibold">{bikeOdo.toFixed(0)} km</span>
-            </p>
-          </motion.div>
+          <PageHeader 
+            title="Maintenance Schedule"
+            subtitle={`Track routine tasks for ${activeBike?.name || "your bike"} · Current odometer: ${bikeOdo.toFixed(0)} km`}
+            icon={ClipboardList}
+            badge="Garage Tools"
+            colorClass="text-purple-400"
+            gradientClass="bg-purple-500/20"
+          />
 
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between mb-5">
             <div className="glass rounded-2xl border border-white/10 p-4 flex items-center gap-3">
