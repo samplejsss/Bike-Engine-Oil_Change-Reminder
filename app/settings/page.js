@@ -9,8 +9,9 @@ import { useActiveBike } from "@/hooks/useActiveBike";
 import { computeNextDue } from "@/lib/maintenanceUtils";
 import Navbar from "@/components/Navbar";
 import PageLoader from "@/components/PageLoader";
-import { Settings, Save, Loader2, Smartphone, Bell, Bike, Navigation, IndianRupee } from "lucide-react";
+import { Settings, Save, Loader2, Smartphone, Bell, BellOff, Bike, Navigation, IndianRupee } from "lucide-react";
 import toast from "react-hot-toast";
+import { sendNotification } from "@/lib/notifications";
 
 const CATEGORIES = ["Fuel", "Service", "Parts", "Insurance", "Parking", "Other"];
 
@@ -187,6 +188,7 @@ export default function SettingsPage() {
         autoMessageEnabled: formData.autoMessageEnabled,
         preferredMethod: formData.preferredMethod,
         fuelEfficiencyThreshold: Number(formData.fuelEfficiencyThreshold),
+        notificationsEnabled: formData.notificationsEnabled ?? true,
       };
       await updateDoc(ref, updateData);
 
@@ -356,6 +358,63 @@ export default function SettingsPage() {
                         </div>
                      )}
                    </div>
+                </div>
+
+                {/* Push Notifications Section */}
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
+                    <Bell size={18} className="text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]" /> Push Notifications
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-slate-900/50 md:w-3/4">
+                      <div>
+                        <p className="text-white font-medium text-sm">Enable Push Notifications</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Get daily oil status, maintenance, and document alerts — even when the app is closed.</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0 ml-4">
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={formData.notificationsEnabled ?? true}
+                          onChange={async (e) => {
+                            setFormData({ ...formData, notificationsEnabled: e.target.checked });
+                            if (e.target.checked) {
+                              if ('serviceWorker' in navigator && 'PushManager' in window) {
+                                const perm = await Notification.requestPermission();
+                                if (perm !== 'granted') {
+                                  toast.error('Allow notifications in your browser settings first.');
+                                  setFormData(prev => ({ ...prev, notificationsEnabled: false }));
+                                } else {
+                                  toast.success('Push notifications enabled! ✅');
+                                }
+                              }
+                            } else {
+                              toast('Push notifications disabled.', { icon: '🔕' });
+                            }
+                          }}
+                        />
+                        <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                      </label>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!user) return;
+                        await sendNotification(user.uid, {
+                          title: '🔔 Test Notification',
+                          body: 'BikeCare push notifications are working correctly!',
+                          type: 'info',
+                        });
+                        toast.success('Test notification sent!');
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm font-semibold hover:bg-rose-500/20 transition-all flex items-center gap-2"
+                    >
+                      <Bell size={15} /> Send Test Notification
+                    </button>
+                    <p className="text-xs text-slate-600">
+                      Uses the Web Push standard (100% free — no Firebase Blaze plan needed).
+                    </p>
+                  </div>
                 </div>
 
                 <div>

@@ -9,6 +9,7 @@ import { useActiveBike } from "@/hooks/useActiveBike";
 import { Bike, LayoutDashboard, History as HistoryIcon, LogOut, LogIn, Menu, X, TrendingUp, Settings, Sparkles, Fuel, FileText, Wallet } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import NotificationCenter from "@/components/NotificationCenter";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -128,6 +129,7 @@ export default function Navbar() {
               {/* Auth Buttons (Desktop) */}
               {user ? (
                 <div className="flex items-center gap-3 ml-2 pl-3 border-l border-white/5">
+                  <NotificationCenter />
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-sm font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)] text-white border border-white/20">
                     {user.email?.[0]?.toUpperCase()}
                   </div>

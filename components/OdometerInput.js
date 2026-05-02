@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveBike } from "@/hooks/useActiveBike";
 import toast from "react-hot-toast";
 import { playSuccessSound } from "@/hooks/useNotifications";
+import { sendNotification } from "@/lib/notifications";
 
 export default function OdometerInput({ onRideAdded, currentStats, mechanicPhone }) {
   const { user } = useAuth();
@@ -161,6 +162,18 @@ export default function OdometerInput({ onRideAdded, currentStats, mechanicPhone
       if (onRideAdded) {
         setTimeout(() => onRideAdded(), 500);
       }
+
+      // Instant push notification on km update
+      const oilInterval = currentStats?.oilChangeLimit || 2000;
+      const sinceReset = (currentStats?.totalKm || 0) + kmRidden - (currentStats?.lastResetKm || 0);
+      const kmLeft = Math.max(0, oilInterval - sinceReset);
+      await sendNotification(user.uid, {
+        title: `🏍️ Ride Logged – ${kmRidden.toFixed(1)} km added`,
+        body: kmLeft <= 0
+          ? `Oil change is OVERDUE! Change your oil now.`
+          : `Oil change in ${kmLeft.toFixed(0)} km. Keep it up!`,
+        type: kmLeft <= 200 ? "alert" : "km",
+      });
 
       // Attempt smart message trigger
       await handleMessageTrigger(kmRidden);
